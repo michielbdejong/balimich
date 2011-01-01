@@ -68,7 +68,7 @@ class AccountActions {
 		Accounts::setState($accountId, $partition, Accounts::STATE_EMIGRANT);
 		return 'ok';
 	}
-	public static function immigrate($accountId, $partition, $migrationToken, $fromNode) {
+	public static function createImmigrant($accountId, $partition, $migrationToken, $fromNode) {
 		$accountIdEsc = (int)$accountId;
 		$partitionEsc = (int)$partition;
 		$migrationTokenEsc = Storage::escape($migrationToken);
@@ -77,8 +77,13 @@ class AccountActions {
 		if(!$result) {
 			throw new HttpInternalServerError();
 		}
-		Accounts::setState($accountId, $partition, Accounts::STATE_IMMIGRANT);
+		Accounts::setState($accountId, $partition, Accounts::STATE_PENDINGIMMIGRANT);
 		return 'ok';
+	}
+	public static function immigrate($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass, $migrationToken, $fromNode) {
+		self::register($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass, $fromNode);
+		list($accountId, $partition) = Accounts::getAccountId($emailUser, $emailDomain, $storageNode, $app, $pubPass, true);
+		return self::createImmigrant($accountId, $partition, $migrationToken, $fromNode);
 	}
 	private static function checkEmigrant($accountId, $partition, $migrationToken) {
 		$accountIdEsc = (int)$accountId;

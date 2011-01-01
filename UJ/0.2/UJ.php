@@ -83,10 +83,8 @@ class UnhostedJSONParser {
 			case 'ACCT.EMIGRATE' :
 				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
 				return AccountActions::emigrate($accountId, $partition, $params['toNode'], $params['migrationToken']);
-			case 'ACCT.IMMIGRATE' : 
-				AccountActions::register($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass'], $params['fromNode']);
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
-				return AccountActions::immigrate($accountId, $partition, $params['fromNode'], $params['migrationToken']);
+			case 'ACCT.IMMIGRATE' :
+				return AccountActions::immigrate($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass'], $params['migrationToken'], $params['fromNode']);
 			case 'ACCT.MIGRATE' :
 				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken'], 'migrationToken');
 				if(!isset($params['group'])) {

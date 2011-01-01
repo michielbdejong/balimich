@@ -76,6 +76,8 @@ abstract class UnitTests {
 			break;
 		case 'AccountActions':
 			if(!(	$this->createAccountsTable(110) 
+			     && $this->createAccountsTable(105) 
+			     && $this->createImmigrantsTable(105) 
 			     )) {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}
