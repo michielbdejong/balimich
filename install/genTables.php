@@ -1,7 +1,6 @@
 <?php
 
 for($i=0;$i<256;$i++) {
-/*
 	echo "CREATE TABLE IF NOT EXISTS `accounts$i` ("
 		."`accountId` int unsigned not null auto_increment, "
 		."`user` varchar(255), "
@@ -29,7 +28,7 @@ for($i=0;$i<256;$i++) {
 		."`PubSign02` varchar(255), "
 		."PRIMARY KEY (`messageId`)"
 		.");\n";
-*/
+
 	echo "CREATE TABLE IF NOT EXISTS `creationTokens$i` ("
 		."`user` varchar(255), "
 		."`node` varchar(255), "

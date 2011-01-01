@@ -1,0 +1,41 @@
+BALIMICH
+--------
+
+Balimich is a UJ/0.2-compatible Unhosted Storage Node. For more information about both unhosted software and the Unhosted JSON protocol that was introduced to make it possible, see http://www.unhosted.org/. Balimich is written in php, memcache and mysql. Other unhosted storage nodes exist (or are being developed) in node.js and in python - the choice is yours.
+
+Structure of the code
+---------------------
+
+Here is a rough diagram:
+
+                         index.php ---- config.php
+                            |
+                         Http.php
+                            |
+                          UJ.php
+                            |
+     ------------------------------------------------------------
+     |                   |                   |                  |
+Accounts.php        KeyValue.php        Messages.php        Migration.php
+     |                   |                   |                  |
+     ------------------------------------------------------------
+                            |
+                        Storage.php
+
+Accounts.php handles authentication for all commands, as well as the ACCT actions.
+KeyValue.php handles KV actions, Messages.php handles KV actions, Messages.php handles MSG actions, and Migration.php handles MIGR actions.
+Storage handles mysql storage, which is partitioned into 26 shards, by the ascii code of the first character of the user name. I'll add a memcache layer to it at some point.
+Migration.php also depends on Accounts.php and on Http.php, although that's not shown in the diagram.
+
+Where to put this code on your webserver
+----------------------------------------
+The code is meant to run on https://unhosted.<domain>/UJ/0.2/
+The reason for this is as follows:
+- "https://[...]" - we think https is doable nowadays, and important. 
+- "[...]unhosted.[...]" - many institutions will want to run the unhosted storage node entirely isolated from their corporate website. That's why we made it a subdomain.
+- "[...]<domain>/[...]" - people log in to apps with their email (whether it's their real email address, or one they use specifically for unhosted web apps). The web app then needs to have a way to route that guid to an IP address. The easiest way to do this is take the part behind the '@'-symbol and resolve it with standard DNS (or any generic future improvements to DNS like DNSSEC, Tor, or .p2p domain names). So routing a guid to a physical host is NOT (I repeat: NOT), a part of unhosted as such. It offloads that task to whatever you plug into your browser for DNS lookups.
+- "[...]UJ/[...]" - at this url you could put an interpreter that speaks all versions of Unhosted JSON (as long as you keep it updated when new versions come out).
+= "[...]0.2/" - there are some things in this protocol, like the captcha generation for instance, that may disappear in future versions. So to not burden future versions with having to implement parts of UJ/0.2 that are not a strict subset of all subsequent versions, we put it on a per-version URL, so when you upgrade, you can leave the code that processes UJ/0.2/ separate and that way easily stay backward compatible without needing to carry along legacy code inside the code base.
+
+
+To install, create a database called for instance 'balimich', and something like "php install/genTables.php | mysql -h localhost -u root -p balimich", then edit config.php.
