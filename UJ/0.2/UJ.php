@@ -32,9 +32,9 @@ class UnhostedJSONParser {
 			throw new HttpBadRequest('no http referer set');
 		}
 		$refererParts = explode('/', $_SERVER['HTTP_REFERER']);
-		$node = substr($_SERVER['HTTP_HOST'], strlen('unhosted.'));
+		$storageNode = substr($_SERVER['HTTP_HOST'], strlen('unhosted.'));
 		$app = $refererParts[2];
-		return array ("POST" => $_POST, "node" => $node, "app" => $app);
+		return array ("POST" => $_POST, "storageNode" => $storageNode, "app" => $app);
 	}
 	function checkFields($POST) {
 		if(!isset($POST['protocol'])) {
@@ -69,28 +69,28 @@ class UnhostedJSONParser {
 		//switch(protocol) { case 'UJ/0.2':
 		switch($action) {
 			case 'KV.GET' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['app'], $params['POST']['subPass'], false);
+				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['app'], $params['POST']['subPass'], false);
 				return KeyValue::get($accountId, $partition, $params['POST']['keyPath']);
 			case 'KV.SET' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['app'], $params['POST']['pubPass'], true);
+				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['app'], $params['POST']['pubPass'], true);
 				return KeyValue::set($accountId, $partition, $params['POST']['keyPath'], $params['POST']['value'], $params['POST']['PubSign']);
 			case 'MSG.SEND' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['app'], $params['POST']['subPass'], false);
+				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['app'], $params['POST']['subPass'], false);
 				return Messages::send($accountId, $partition, $params['POST']['keyPath'], $params['POST']['value'], $params['POST']['PubSign']);
 			case 'MSG.RECEIVE' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['app'], $params['POST']['pubPass'], true);
+				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['app'], $params['POST']['pubPass'], true);
 				return Messages::receive($accountId, $partition, $params['POST']['keyPath'], ($params['POST']['delete'] == 'true'), $params['POST']['limit']);
 			case 'ACCT.CREATE' : 
-				return Accounts::create($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['app'], $params['POST']['creationToken'], $params['POST']['pubPass'], $params['POST']['subPass']);
+				return Accounts::create($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['app'], $params['POST']['creationToken'], $params['POST']['pubPass'], $params['POST']['subPass']);
 			case 'ACCT.GIVEPOPSHAKE' : 
 				//this call is only here to throw exceptions as appropriate:
-				Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['app'], $params['POST']['pubPass'], true);
-				return Accounts::givePopShake($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['POST']['toApp'], $params['POST']['creationToken'], $params['app']);
+				Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['app'], $params['POST']['pubPass'], true);
+				return Accounts::givePopShake($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['POST']['toApp'], $params['POST']['creationToken'], $params['app']);
 			case 'ACCT.DISAPPEAR' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['app'], $params['POST']['pubPass'], true);
+				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['app'], $params['POST']['pubPass'], true);
 				return Accounts::disappear($accountId, $partition);
 			case 'ACCT.GETSTATE' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['node'], $params['app'], $params['POST']['pubPass'], true);
+				list($accountId, $partition) = Accounts::getAccountId($params['POST']['emailUser'], $params['POST']['emailDomain'], $params['storageNode'], $params['app'], $params['POST']['pubPass'], true);
 				return Accounts::getState($accountId, $partition);
 			default:
 				//shoudn't get here, because action was checked by checkFields.

@@ -30,8 +30,9 @@ for($i=0;$i<256;$i++) {
 		.");\n";
 
 	echo "CREATE TABLE IF NOT EXISTS `creationTokens$i` ("
-		."`user` varchar(255), "
-		."`node` varchar(255), "
+		."`emailUser` varchar(255), "
+		."`emailDomain` varchar(255), "
+		."`storageNode` varchar(255), "
 		."`app` varchar(255), "
 		."`token` varchar(255));\n";
 }

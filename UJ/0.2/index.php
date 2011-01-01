@@ -54,19 +54,6 @@ file_put_contents('/tmp/mich.log', "\nRESPONSE HEADER CODE:".$response->getHeade
 	echo $response->getHeader();
 	echo $response->getMessage();
 }
-if(isset($_GET['captchaFor'])) {
-	if(!isset($_SERVER['HTTP_REFERER'])) {
-		$app = 'no_referer';
-	} else {
-		$refererParts = explode('/', $_SERVER['HTTP_REFERER']);
-		$app = $refererParts[2];
-	}
-	$email = $_GET['captchaFor'];
-	list($user, $node) = explode('@', $email);
-	header('Content-Type: image/jpeg');
-	echo file_get_contents(Accounts::giveCaptchaFor($user, $node, $app));
-	die();
-}
 try {
 	$uj = new UnhostedJSONParser();
 	$response = $uj->parse();

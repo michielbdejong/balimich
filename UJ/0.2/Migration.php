@@ -54,17 +54,15 @@ class Migration {
 			throw new HttpBadRequest();
 		}
 	}
-	public static function doMigration($user, $node, $app, $group, $keyPath) {
-		list($accountId, $partition) = Accounts::getAccountId($user, $node, $app);
+	public static function doMigration($emailUser, $emailDomain, $storageNode, $app, $group, $keyPath) {
+		list($accountId, $partition) = Accounts::getAccountId($emailUser, $emailDomain, $storageNode, $app);
 		list($migrationToken, $fromUser, $fromNode) = self::getImmigrantDetails($accountId, $partition);
 		//get a few objects (entries or messages, depending on $group):
 		$objects = Http::call($fromNode, array(
 			'method'=>'MIGR.MIGRATE',
-			'user'=>$fromUser, 
 			'app'=>$app,
 			'migrationToken'=>$migrationToken, 
-			'toUser'=>$user, 
-			'toNode'=>$node, 
+			'toNode'=>$storageNode, 
 			'group'=>$group,
 			'keyPath'=>$keyPath,
 			'delete'=>'false',
@@ -85,11 +83,9 @@ class Migration {
 			foreach($objects as $thisKeyPath=>$object) {
 				Http::call($fromNode, array(
 					'method'=>'MIGR.MIGRATE',
-					'user'=>$fromUser, 
 					'app'=>$app,
 					'migrationToken'=>$migrationToken, 
-					'toUser'=>$user, 
-					'toNode'=>$node, 
+					'toNode'=>$storageNode, 
 					'group'=>$group,
 					'keyPath'=>$thisKeyPath,
 					'delete'=>'true',
