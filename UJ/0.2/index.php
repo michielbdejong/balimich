@@ -40,6 +40,7 @@ class HttpInternalServerError extends Exception{
 	}
 }
 
+require_once BASE_DIR . 'Http.php';
 require_once BASE_DIR . 'UJ.php';
 
 function HttpRespond($response) {
@@ -55,7 +56,8 @@ file_put_contents('/tmp/mich.log', "\nRESPONSE HEADER CODE:".$response->getHeade
 	echo $response->getMessage();
 }
 try {
-	$uj = new UnhostedJSONParser();
+	$params = Http::obtainParams();
+	$uj = new UnhostedJSONParser($params);
 	$response = $uj->parse();
 	HttpRespond(new HttpOk($response));
 } catch (HttpServiceUnavailable $e) {

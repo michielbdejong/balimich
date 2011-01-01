@@ -77,41 +77,39 @@ class AccountsTests extends UnitTests {
 		}
 	}
 
-	function testCreate() {
-		echo "(create)";
-		Accounts::create('newco', 'mlsn.org', 'testApp.org', 'asti fasti', 'captcha_7322', 'newcoPub', 'newcoSub');
-		echo ".(steal email)";
+	function testRegister() {
+		echo "(register)";
+		Accounts::register('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub', 'newcoSub');
+		$registrationToken = $GLOBALS['registrationTokensSent']['newco@hotmail.com'];
+		echo "(repeat register)";
 		try {
-			Accounts::create('newco', 'mlsn.org', 'otherApp.org', 'fasti basti', 'captcha_7323', 'newcoPub', 'newcoSub');
-			$this->assertDontReachHere('steal email');
-		} catch (HttpForbidden $e) {
-			echo ".";
-		}
-		echo "(repeat create)";
-		try {
-			Accounts::create('newco', 'mlsn.org', 'testApp.org', 'asti fasti', 'captcha_7322', 'newcoPub', 'newcoSub');
+			Accounts::register('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub2', 'newcoSub2');
 			$this->assertDontReachHere('repeat create');
 		} catch (HttpForbidden $e) {
 			echo ".";
 		}
 		echo "(get account id)";
-		$accountIdPart = Accounts::getAccountId('newco', 'mlsn.org', 'testApp.org', 'newcoPub', true);
+		$accountIdPart = Accounts::getAccountId('newco', 'hotmail.com' 'mlsn.org', 'testApp.org', 'newcoPub', true);
 		$this->assertEqual($accountIdPart, array(1, 110));
 		list($accountId, $partition) = $accountIdPart;
 		echo "(disappear)";
 		Accounts::disappear($accountId, $partition);
 		$this->assertEqual(Accounts::getState($accountId, $partition), Accounts::STATE_GONE);
-		echo "(repeat create after disappear)";
+		echo "(repeat register after disappear)";
+		Accounts::register('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub', 'newcoSub');
+		$registrationToken = $GLOBALS['registrationTokensSent']['newco@hotmail.com'];
+		echo "(confirm)";
+		$accountIdPart = Accounts::getAccountId('newco', 'hotmail.com' 'mlsn.org', 'testApp.org', 'newcoPub', true);
+		$this->assertEqual($accountIdPart, array(1, 110));
+		list($accountId, $partition) = $accountIdPart;
+		$registrationToken = $GLOBALS['registrationTokensSent']['newco@hotmail.com'];
+		$this->assertEqual(Accounts::getState($accountId, $partition), Accounts::STATE_PENDING);
+		Accounts::confirm($accountId, $partition, $registrationToken);
+		$this->assertEqual(Accounts::getState($accountId, $partition), Accounts::STATE_LIVE);
+		echo "(repeat register after confirm)";
 		try {
-			Accounts::create('newco', 'mlsn.org', 'testApp.org', 'asti fasti', 'captcha_7322', 'newcoPub', 'newcoSub');
+			Accounts::register('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub', 'newcoSub');
 			$this->assertDontReachHere('repeat create after disappear');
-		} catch (HttpForbidden $e) {
-			echo ".";
-		}
-		echo "(steal email after disappear)";
-		try {
-			Accounts::create('newco', 'mlsn.org', 'otherApp.org', 'fasti basti', 'captcha_7323', 'newcoPub', 'newcoSub');
-			$this->assertDontReachHere('steal email after disappear');
 		} catch (HttpForbidden $e) {
 			echo ".";
 		}

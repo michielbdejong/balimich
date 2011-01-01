@@ -1,10 +1,5 @@
 <?php
-define('TESTS_DIR', '/var/www/beta/unhosted.balimich.org/tests/');
-define('BASE_DIR', '/var/www/beta/unhosted.balimich.org/UJ/0.2/');
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'mlsnTest');
+require_once 'TestingConfig.php';
 
 class HttpServiceUnavailable extends Exception{};
 class HttpBadRequest extends Exception{};

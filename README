@@ -9,24 +9,32 @@ Structure of the code
 
 Here is a rough diagram:
 
-                         index.php ---- config.php
-                            |
-                         Http.php
-                            |
-                          UJ.php
-                            |
-     ------------------------------------------------------------
-     |                   |                   |                  |
-Accounts.php        KeyValue.php        Messages.php        Migration.php
-     |                   |                   |                  |
-     ------------------------------------------------------------
-                            |
-                        Storage.php
+                        index.php
+                         |  |  |
+ -------------------------  |  ----------
+ |                          |           |
+ |                        UJ.php     config.php
+ |                          |
+ |        ----------------------------------------------------
+ |        |            |                 |                   |
+ | AccountActions.php  |                 |                   |
+ |    |  |   |    |    |                 |                   |
+ |    |  |   |  Accounts.php        KeyValue.php        Messages.php
+ |    |  |   |       |                   |                   |
+ |    |  |   |       -----------------------------------------
+ |    |  |   |       |
+ |    |  |   |       |
+Http.php |  Storage.php
+         |
+       Smtp.php
 
-Accounts.php handles authentication for all commands, as well as the ACCT actions.
-KeyValue.php handles KV actions, Messages.php handles KV actions, Messages.php handles MSG actions, and Migration.php handles MIGR actions.
+index.php and config.php are obvious.
+UJ.php handles the parsing of UJ/0.2 action parameters.
+Accounts.php handles authentication and access control, independent of which command group the action belongs to.
+AccountActions.php handles actions from the ACCT command group.
+Similarly, KeyValue.php handles KV actions, and Messages.php handles MSG actions.
 Storage handles mysql storage, which is partitioned into 26 shards, by the ascii code of the first character of the user name. I'll add a memcache layer to it at some point.
-Migration.php also depends on Accounts.php and on Http.php, although that's not shown in the diagram.
+Http.php handles parsing of both incoming and outgoing (in case of node-to-node migration) Http, and Smtp.php handles the sending of registration tokens by email.
 
 
 Where to put this code on your webserver
