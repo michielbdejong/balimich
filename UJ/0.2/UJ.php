@@ -36,7 +36,7 @@ class UnhostedJSONParser {
 		if(!isset($this->fields[$params['protocol']][$params['action']])) {
 			throw new HttpBadRequest('action not recognised');
 		}
-		foreach($params as $fieldName => $fieldValue) {
+		foreach($params as $fieldName => $fieldObligatory) {
 			if(in_array($fieldName, array('protocol', 'action', 'emailUser', 'emailDomain', 'storageNode', 'app'))) {
 				//default parameter - OK
 			} else if (isset($this->fields[$params['protocol']][$params['action']][$fieldName])) {
@@ -45,8 +45,8 @@ class UnhostedJSONParser {
 				throw new HttpBadRequest('unrecognised parameter '.$fieldName);
 			}
 		}
-		foreach($this->fields[$params['protocol']][$params['action']] as $fieldName => $fieldValue) {
-			if(!isset($params[$fieldName])) {
+		foreach($this->fields[$params['protocol']][$params['action']] as $fieldName => $fieldObligatory) {
+			if($fieldObligatory && !isset($params[$fieldName])) {
 				throw new HttpBadRequest('missing field '.$fieldName);
 			}
 		}
@@ -80,9 +80,25 @@ class UnhostedJSONParser {
 			case 'ACCT.GETSTATE' : 
 				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
 				return Accounts::getState($accountId, $partition);
+			case 'ACCT.EMIGRATE' :
+				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				return AccountActions::emigrate($accountId, $partition, $params['toNode'], $params['migrationToken']);
+			case 'ACCT.IMMIGRATE' : 
+				AccountActions::register($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass'], $params['fromNode']);
+				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				return AccountActions::immigrate($accountId, $partition, $params['fromNode'], $params['migrationToken']);
+			case 'ACCT.MIGRATE' :
+				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken'], 'migrationToken');
+				if(!isset($params['group'])) {
+					$params['group']=null;
+				}
+				if(!isset($params['keyPath'])) {
+					$params['keyPath']=null;
+				}
+				return AccountActions::migrate($accountId, $partition, $params['migrationToken'], $params['group'], $params['keyPath'], $params['needValue'], $params['delete'], $params['limit']);
 			default:
 				//shoudn't get here, because action was checked by checkFields.
-				throw new HttpInternalServerError();
+				throw new HttpInternalServerError('action not recognized');
 		}
 		//}
 	}

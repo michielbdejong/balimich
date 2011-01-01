@@ -67,6 +67,21 @@ class UJTests extends UnitTests {//TODO: this really tests the combination of UJ
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
 			array('emailUser'=>'pich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.DISAPPEAR', 'pubPass'=>'pichPub'));
 		$this->assertEqual($result, 'ok');
+
+		echo "(acct.emigrate)";
+		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
+			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.EMIGRATE', 'pubPass'=>'michPub', 'migrationToken'=>'here we go', 'toNode'=>'balimich.org'));
+		$this->assertEqual($result, 'ok');
+
+		echo "(acct.immigrate)";
+		$result = $this->testParams('unhosted.balimich.org', 'http://testApp.org/', 
+			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.IMMIGRATE', 'pubPass'=>'michPubNew', 'subPass'=>'michSubNew', 'migrationToken'=>'here we go', 'fromNode'=>'mlsn.org'));
+		$this->assertEqual($result, 'ok');
+
+		echo "(acct.migrate)";
+		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/',
+			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.MIGRATE', 'migrationToken'=>'here we go', 'delete'=>'false', 'limit'=>'3', 'needValue'=>'true'));
+		$this->assertEqual($result, array('KV'=>array(), 'MSG'=>array()));
 	}
 	function runAll() {
 		$this->loadFixture('UJ');

@@ -54,7 +54,7 @@ To install, create a database called for instance 'balimich', and something like
 Overview of UJ/0.2 actions
 ==========================
 
-| group:            |    KV     |       MSG      |                  ACCT                     |                    MIGR        |
+| group:            |    KV     |       MSG      |                                    ACCT                                    |
 | command:          | GET | SET | SEND | RECEIVE | REGISTER | CONFIRM | DISAPPEAR | GETSTATE | EMIGRATE | IMMIGRATE | MIGRATE |
 ===============================================================================================================================
 | HTTP HOST         | always the unhosted storage node where the account currently "lives"                                    |
@@ -72,7 +72,7 @@ Overview of UJ/0.2 actions
 | PubSign           |     |  *  |  *   |         |          |         |           |          |          |           |         |
 | delete            |     |     |      |    *    |          |         |           |          |          |           |    *    |
 | limit             |     |     |      |    *    |          |         |           |          |          |           |    *    |
-| registrationToken |     |     |      |         |          |    *    |           |          |          |     *     |         |
+| registrationToken |     |     |      |         |          |    *    |           |          |          |           |         |
 | migrationToken    |     |     |      |         |          |         |           |          |     *    |     *     |    *    |
 | toNode            |     |     |      |         |          |         |           |          |     *    |           |         |
 | fromNode          |     |     |      |         |          |         |           |          |          |     *     |         |

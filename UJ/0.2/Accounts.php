@@ -15,16 +15,19 @@ class Accounts {
 		$emailDomainEsc = Storage::escape($emailDomain);
 		$storageNodeEsc = Storage::escape($storageNode);
 		$appEsc = Storage::escape($app);
-		$md5Pass = md5($pass);
-		$partition = ord(substr($emailUserEsc, 0, 1));
-		if($passIsPub) {
-			$passField = 'md5PubPass';
+		$partitionInt = (int)ord(substr($emailUserEsc, 0, 1));
+		if($passIsPub === 'migrationToken') {//TODO: refactor this so it doesn't use a "trinary boolean" in this ugly way
+			$passClauseEsc = '';
+		} else if($passIsPub) {
+			$md5PassEsc = md5($pass);
+			$passClauseEsc = " AND `md5PubPass` = '$md5PassEsc'";
 		} else {
-			$passField = 'md5SubPass';
+			$md5PassEsc = md5($pass);
+			$passClauseEsc = " AND `md5SubPass` = '$md5PassEsc'";
 		}
-		$result = Storage::queryArr("acct$passField:$emailUserEsc:$emailDomainEsc:$storageNodeEsc:$appEsc:$md5Pass",
-		                               "SELECT `accountId`, `state` FROM `accounts$partition` WHERE `emailUser` = '$emailUserEsc' AND `emailDomain` = '$emailDomainEsc' AND `storageNode` = '$storageNodeEsc' "
-		                               ."AND `app` = '$appEsc' AND `$passField` = '$md5Pass'");
+		$result = Storage::queryArr("",
+		                               "SELECT `accountId`, `state` FROM `accounts$partitionInt` WHERE `emailUser` = '$emailUserEsc' AND `emailDomain` = '$emailDomainEsc' AND `storageNode` = '$storageNodeEsc' "
+		                               ."AND `app` = '$appEsc'$passClauseEsc");
 		if(!is_array($result) || count($result) != 1) {
 			throw new HttpForbidden('');
 		}
@@ -32,7 +35,18 @@ class Accounts {
 		if($result[0][1] == self::STATE_GONE) {
 			throw new HttpGone();
 		}
-		return array((int)$result[0][0], $partition);
+		$accountIdInt = (int)$result[0][0];
+//		if($passIsPub === 'migrationToken') {//TODO: refactor this so it doesn't use a "trinary boolean" in this ugly way
+//			$migrationTokenEsc = Storage::escape($pass);
+//			if($result[0][1] == self::STATE_GONE) {
+//				throw new HttpForbidden('not an emigrant');
+//			}
+//			$emigrant = Storage::queryArr("", "SELECT * FROM `emigrants$partitionInt` WHERE `accountId` = $accountIdInt AND `migrationToken` = '$migrationTokenEsc'");
+//			if(!is_array($emigrant) || count($emigrant) != 1) {
+//				throw new HttpForbidden('');
+//			}
+//		}
+		return array($accountIdInt, $partitionInt);
 	}
 	public static function setState($accountId, $partition, $state) {
 		$accountIdInt = (int) $accountId;

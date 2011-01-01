@@ -12,13 +12,9 @@ class KeyValueTests extends UnitTests {
 		$value = KeyValue::get(8, 123, 'abcd/efgh');
 		$this->assertEqual($value, json_encode(array('value'=>null, 'PubSign'=>'')));
 
-		echo "(get key for non-account)";
-		try {
-			$value = KeyValue::get(12, 24, 'abcd/efg');
-			$this->assertDontReachHere('get key for non-account');
-		} catch (HttpNotFound $e) {
-			echo ".";
-		}
+		echo "(get key for non-account)";//you couldn't do this over UJ because getAccountId would fail.
+		$value = KeyValue::get(12, 24, 'abcd/efg');
+		$this->assertEqual($value, json_encode(array('value'=>null, 'PubSign'=>'')));
 	}
 	function testSet() {
 		echo "(setting)";

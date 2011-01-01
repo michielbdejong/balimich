@@ -5,7 +5,7 @@ class AccountActions {
 	private static function genRegistrationToken($email) {
 		return md5('Repelsteeltke'.$email);
 	}
-	public static function register($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass) {
+	public static function register($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass, $fromNode = null) {
 		$emailUserEsc = Storage::escape($emailUser);
 		$emailDomainEsc = Storage::escape($emailDomain);
 		$storageNodeEsc = Storage::escape($storageNode);
@@ -13,7 +13,11 @@ class AccountActions {
 		$md5PubPass = md5($pubPass);
 		$md5SubPass = md5($subPass);
 		$partition = ord(substr($emailUserEsc, 0, 1));
-		$accountStateInt = Accounts::STATE_PENDING;
+		if($fromNode === null) {
+			$accountStateInt = Accounts::STATE_PENDING;
+		} else {
+			$accountStateInt = Accounts::STATE_PENDINGIMMIGRANT;
+		}
 		$emailEsc = $emailUserEsc.'@'.$emailDomainEsc;
 		$registrationTokenEsc = self::genRegistrationToken($emailEsc);
 		$existingCount = Storage::queryArr("", "SELECT COUNT(*) FROM `accounts$partition` WHERE "
@@ -27,7 +31,7 @@ class AccountActions {
 		                                           ."VALUES ('$emailUserEsc', '$emailDomainEsc', '$storageNodeEsc', '$appEsc', '$md5PubPass', '$md5SubPass', $accountStateInt, '$registrationTokenEsc')");
 		$emailSenderClass = EMAIL_SENDER;
 		$emailSender = new $emailSenderClass();
-		$emailSender->sendRegistrationToken($emailEsc, $registrationTokenEsc);
+		$emailSender->sendRegistrationToken($emailEsc, $registrationTokenEsc, $fromNode);
 		return 'ok';
 	}
 	public static function confirm($accountId, $partition, $registrationToken) {
@@ -35,8 +39,10 @@ class AccountActions {
 		$partitionInt = (int)$partition;
 		$registrationTokenEsc = Storage::escape($registrationToken);
 		$pendingStateInt = Accounts::STATE_PENDING;
+		$pendingImmigrantStateInt = Accounts::STATE_PENDINGIMMIGRANT;
 		$liveStateInt = Accounts::STATE_LIVE;
-		Storage::query("", "UPDATE `accounts$partitionInt` SET `state` = $liveStateInt WHERE `state` = $pendingStateInt AND `accountId` = $accountIdInt");
+		Storage::query("", "UPDATE `accounts$partitionInt` SET `state` = $liveStateInt WHERE "
+		    ."(`state` = $pendingStateInt OR `state` = $pendingImmigrantStateInt) AND `accountId` = $accountIdInt");
 		return 'ok';
 	}
 	public static function disappear($accountId, $partition) {
@@ -50,38 +56,35 @@ class AccountActions {
 		}
 		return 'ok';
 	}
-	public static function emigrate($accountId, $partition, $migrationToken, $toUser, $toNode) {
+	public static function emigrate($accountId, $partition, $toNode, $migrationToken) {
 		$accountIdEsc = (int)$accountId;
 		$partitionEsc = (int)$partition;
 		$migrationTokenEsc = Storage::escape($migrationToken);
-		$toUserEsc = Storage::escape($toUser);
 		$toNodeEsc = Storage::escape($toNode);
-		$result = Storage::query("INSERT INTO `emigrants$partitionEsc` (`accountId`, `migrationToken`, `toUser`, `toNode`) VALUES ($accountIdEsc, $partitionEsc, '$migrationTokenEsc', '$toUserEsc', '$toNodeEsc')");
+		$result = Storage::query("", "INSERT INTO `emigrants$partitionEsc` (`accountId`, `migrationToken`, `toNode`) VALUES ($accountIdEsc, '$migrationTokenEsc', '$toNodeEsc')");
 		if(!$result) {
 			throw new HttpInternalServerError();
 		}
 		Accounts::setState($accountId, $partition, Accounts::STATE_EMIGRANT);
+		return 'ok';
 	}
-	public static function immigrate($accountId, $partition, $migrationToken, $fromUser, $fromNode) {
+	public static function immigrate($accountId, $partition, $migrationToken, $fromNode) {
 		$accountIdEsc = (int)$accountId;
 		$partitionEsc = (int)$partition;
 		$migrationTokenEsc = Storage::escape($migrationToken);
-		$fromUserEsc = Storage::escape($fromUser);
 		$fromNodeEsc = Storage::escape($fromNode);
-		$result = Storage::query("INSERT INTO `immigrants$partitionEsc` (`accountId`, `migrationToken`, `fromUser`, `fromNode`) VALUES ($accountIdEsc, $partitionEsc, '$migrationTokenEsc', '$fromUserEsc', '$fromNodeEsc')");
+		$result = Storage::query("", "INSERT INTO `immigrants$partitionEsc` (`accountId`, `migrationToken`, `fromNode`) VALUES ($accountIdEsc, '$migrationTokenEsc', '$fromNodeEsc')");
 		if(!$result) {
 			throw new HttpInternalServerError();
 		}
 		Accounts::setState($accountId, $partition, Accounts::STATE_IMMIGRANT);
+		return 'ok';
 	}
-	private static function checkEmigrant($accountId, $partition, $migrationToken, $toUser, $toNode) {
+	private static function checkEmigrant($accountId, $partition, $migrationToken) {
 		$accountIdEsc = (int)$accountId;
 		$partitionEsc = (int)$partition;
 		$migrationTokenEsc = Storage::escape($migrationToken);
-		$toUserEsc = Storage::escape($toUser);
-		$toNodeEsc = Storage::escape($toNode);
-		$rows = Storage::queryArr("SELECT COUNT(*) FROM `emigrants$partitionEsc` WHERE `accountId` = $accountIdEsc AND `migrationToken` = '$migrationTokenEsc' "
-						."AND `toUser` = '$toUserEsc' AND `toNode` = '$toNodeEsc';");
+		$rows = Storage::queryArr("", "SELECT COUNT(*) FROM `emigrants$partitionEsc` WHERE `accountId` = $accountIdEsc AND `migrationToken` = '$migrationTokenEsc'");
 		if(!is_array($rows) || count($rows) != 1 || count($rows[0]) != 1 || $rows[0][0] > 1) {
 			throw new HttpInternalServerError();
 		}
@@ -89,17 +92,21 @@ class AccountActions {
 			throw new HttpForbidden();
 		}
 	}
-	public static function migrate($accountId, $partition, $migrationToken, $group, $keyPath, $needValue, $delete, $limit, $toUser, $toNode) {
-		self::checkEmigrant($accountId, $partition, $migrationToken, $toUser, $toNode);
+	public static function migrate($accountId, $partition, $migrationToken, $group, $keyPath, $needValue, $delete, $limit) {
+		self::checkEmigrant($accountId, $partition, $migrationToken);
 		switch($group) {
 		case 'KV':
-			return KeyValue::export($accountId, $partition, $needValue, $delete, $limit);
-			break;
+			$entries = array();//KeyValue::export($accountId, $partition, $needValue, $delete, $limit);
+			return array('KV'=>$entries);
 		case 'MSG':
-			return Messages::export($accountId, $partition, $needValue, $delete, $limit);
-			break;
+			$messages = array();//Messages::export($accountId, $partition, $needValue, $delete, $limit);
+			return array('MSG'=>$messages);
 		default:
-			throw new HttpBadRequest();
+			$messages = array();//Messages::export($accountId, $partition, $needValue, $delete, $limit);
+			if(count($messages) < $limit) {
+				$entries = array();//KeyValue::export($accountId, $partition, $needValue, $delete, $limit - count($messages));
+			}
+			return array('KV'=>$entries, 'MSG'=>$messages);
 		}
 	}
 	public static function doMigration($emailUser, $emailDomain, $storageNode, $app, $group, $keyPath) {

@@ -22,7 +22,16 @@ abstract class UnitTests {
 		    ."`value` text, `PubSign` varchar(255), "
 		    ."PRIMARY KEY (`messageId`))");
 	}
-
+	private function createEmigrantsTable($partitionInt) {
+		return $this->mysql->query("CREATE TABLE IF NOT EXISTS `emigrants$partitionInt` "
+		    ."(`accountId` int, `migrationToken` varchar(255), `toNode` varchar(255),"
+		    ."PRIMARY KEY (`accountId`))");
+	}
+	private function createImmigrantsTable($partitionInt) {
+		return $this->mysql->query("CREATE TABLE IF NOT EXISTS `immigrants$partitionInt` "
+		    ."(`accountId` int, `migrationToken` varchar(255), `fromNode` varchar(255),"
+		    ."PRIMARY KEY (`accountId`))");
+	}
 	//ROWS:
 	private function createAccount($accountIdInt, $partitionInt, $emailUserEsc, $emailDomainEsc, $storageNodeEsc, $appEsc, 
 	                                                                                       $stateInt, $pubPass, $subPass) {
@@ -92,6 +101,8 @@ abstract class UnitTests {
 			     && $this->createEntriesTable(109)
 			     && $this->createMessagesTable(109)
 			     && $this->createAccountsTable(112)
+			     && $this->createEmigrantsTable(109)
+			     && $this->createImmigrantsTable(109)//the immigrant will be a different accountId, but it all lives mixed in same db
 			     && $this->createAccount(4, 109, 'mich', 'hotmail.com', 'mlsn.org', 'testApp.org', 1, 'michPub', 'michSub')
 			     )) {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
