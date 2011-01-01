@@ -7,7 +7,7 @@ class KeyValue {
 		$partitionEsc = (int) $partition;
 		$keyPathEsc = Storage::escape($keyPath);
 		$values = Storage::queryArr("entries$accountIdEsc:$keyPathEsc",
-		                               "SELECT `value`, `PubSign02` FROM `entries$partitionEsc` WHERE `accountId` = $accountIdEsc AND `keyPath`= '$keyPathEsc'");
+		                               "SELECT `value`, `PubSign` FROM `entries$partitionEsc` WHERE `accountId` = $accountIdEsc AND `keyPath`= '$keyPathEsc'");
 		if(!is_array($values) || count($values) > 1) {
 			throw new HttpInternalServerError();
 		}
@@ -23,9 +23,9 @@ class KeyValue {
 		$valueEsc = Storage::escape($value);
 		$PubSignEsc = Storage::escape($PubSign);
 		$values = Storage::update("entries$accountIdEsc:$keyPathEsc", array($valueEsc, $PubSignEsc),
-		                          "INSERT INTO `entries$partitionEsc` (`accountId`, `keyPath`, `value`, `PubSign02`) "
+		                          "INSERT INTO `entries$partitionEsc` (`accountId`, `keyPath`, `value`, `PubSign`) "
 		                                                  ."VALUES ($accountIdEsc, '$keyPathEsc', '$valueEsc', '$PubSignEsc') ON DUPLICATE KEY UPDATE "
-		                                                  ."`value` = '$valueEsc', `PubSign02` = '$PubSignEsc'");
+		                                                  ."`value` = '$valueEsc', `PubSign` = '$PubSignEsc'");
 		if($values !== true) {
 			throw new HttpInternalServerError();
 		}

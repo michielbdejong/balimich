@@ -1,6 +1,6 @@
 <?php
 require_once BASE_DIR . 'Accounts.php';
-require_once BASE_DIR . 'AccountsActions.php';
+require_once BASE_DIR . 'AccountActions.php';
 require_once BASE_DIR . 'KeyValue.php';
 require_once BASE_DIR . 'Messages.php';
 
@@ -23,32 +23,34 @@ class UnhostedJSONParser {
 		  'ACCT.MIGRATE' => array('migrationToken' => true, 'delete' => true, 'limit' => true, 'needValue' => true, 'group' => false, 'keyPath' => false),
 		                 ),
 		);
-	function checkFields($POST) {
-		if(!isset($POST['protocol'])) {
+	function checkFields($params) {
+		if(!isset($params['protocol'])) {
 			throw new HttpBadRequest('protocol not set');
 		}
-		if(!isset($this->fields[$POST['protocol']])) {
+		if(!isset($this->fields[$params['protocol']])) {
 			throw new HttpBadRequest('protocol not recognised');
 		}
-		if(!isset($POST['action'])) {
+		if(!isset($params['action'])) {
 			throw new HttpBadRequest('action not set');
 		}
-		if(!isset($this->fields[$POST['protocol']][$POST['action']])) {
+		if(!isset($this->fields[$params['protocol']][$params['action']])) {
 			throw new HttpBadRequest('action not recognised');
 		}
-		foreach($POST as $fieldName => $fieldValue) {
-			if($fieldName != 'protocol' && $fieldName != 'action' && $fieldName != 'emailUser' && $fieldName != 'emailDomain') {
-				if(!isset($this->fields[$POST['protocol']][$POST['action']][$fieldName])) {
-					throw new HttpBadRequest('unrecognised field '.$fieldName);
-				}
+		foreach($params as $fieldName => $fieldValue) {
+			if(in_array($fieldName, array('protocol', 'action', 'emailUser', 'emailDomain', 'storageNode', 'app'))) {
+				//default parameter - OK
+			} else if (isset($this->fields[$params['protocol']][$params['action']][$fieldName])) {
+				//action-specific parameter -OK
+			} else {
+				throw new HttpBadRequest('unrecognised parameter '.$fieldName);
 			}
 		}
-		foreach($this->fields[$POST['protocol']][$POST['action']] as $fieldName => $fieldValue) {
-			if(!isset($POST[$fieldName])) {
+		foreach($this->fields[$params['protocol']][$params['action']] as $fieldName => $fieldValue) {
+			if(!isset($params[$fieldName])) {
 				throw new HttpBadRequest('missing field '.$fieldName);
 			}
 		}
-		return $POST['action'];
+		return $params['action'];
 	}
 	function parse($params) {
 		$action = $this->checkFields($params);
@@ -66,15 +68,15 @@ class UnhostedJSONParser {
 			case 'MSG.RECEIVE' : 
 				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
 				return Messages::receive($accountId, $partition, $params['keyPath'], ($params['delete'] == 'true'), $params['limit']);
-			case 'ACCT.CREATE' : 
-				return Accounts::create($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['creationToken'], $params['pubPass'], $params['subPass']);
-			case 'ACCT.GIVEPOPSHAKE' : 
+			case 'ACCT.REGISTER' : 
+				return AccountActions::register($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass']);
+			case 'ACCT.CONFIRM' : 
 				//this call is only here to throw exceptions as appropriate:
-				Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
-				return Accounts::givePopShake($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['toApp'], $params['creationToken'], $params['app']);
+				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				return AccountActions::confirm($accountId, $partition, $params['registrationToken']);
 			case 'ACCT.DISAPPEAR' : 
 				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
-				return Accounts::disappear($accountId, $partition);
+				return AccountActions::disappear($accountId, $partition);
 			case 'ACCT.GETSTATE' : 
 				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
 				return Accounts::getState($accountId, $partition);

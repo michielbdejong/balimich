@@ -20,6 +20,12 @@ require_once 'AccountsTests.php';
 $accountsTests = new AccountsTests();
 $accountsTests->runAll();
 
+echo "\nAccountActions\n========\n";
+require_once 'AccountActionsTests.php';
+
+$accountActionsTests = new AccountActionsTests();
+$accountActionsTests->runAll();
+
 echo "\nKeyValue\n========\n";
 require_once 'KeyValueTests.php';
 

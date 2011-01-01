@@ -9,7 +9,7 @@ class Messages {
 		$limitEsc = (int) min($limit, self::MAX_LIMIT);
 		$keyPathEsc = Storage::escape($keyPath);
 		$messages = Storage::queryArr("",
-		                          "SELECT `messageId`, `value`, `PubSign02` FROM `messages$partitionEsc` "
+		                          "SELECT `messageId`, `value`, `PubSign` FROM `messages$partitionEsc` "
 		                          ."WHERE `accountId` = $accountIdEsc AND `keyPath`= '$keyPathEsc' "
 		                          ."ORDER BY `messageId` LIMIT $limitEsc");
 		if(count($messages) > 0) {
@@ -34,7 +34,7 @@ class Messages {
 		$keyPathEsc = Storage::escape($keyPath);
 		$valueEsc = Storage::escape($value);
 		$PubSignEsc = Storage::escape($PubSign);
-		$ret = Storage::update("", array(), "INSERT INTO `messages$partitionEsc` (`accountId`, `keyPath`, `value`, `PubSign02`) "
+		$ret = Storage::update("", array(), "INSERT INTO `messages$partitionEsc` (`accountId`, `keyPath`, `value`, `PubSign`) "
 		                                                             ."VALUES ($accountIdEsc, '$keyPathEsc', '$valueEsc', '$PubSignEsc')");
 		if(!$ret) {
 			throw new HttpInternalServerError();

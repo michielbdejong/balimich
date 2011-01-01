@@ -2,6 +2,7 @@
 require_once BASE_DIR . 'Storage.php';
 
 class Accounts {
+	const STATE_NONEXISTENT = -1;
 	const STATE_PENDING = 0;
 	const STATE_LIVE = 1;
 	const STATE_GONE = 2;
@@ -9,8 +10,9 @@ class Accounts {
 	const STATE_PENDINGIMMIGRANT = 4;
 	const STATE_IMMIGRANT = 5;
 
-	public static function getAccountId($emailUser, $emailDomain, $storageNode, $app, $pass, $passIsPub) {
+	public static function getAccountId($emailUser, $emailDomain, $storageNode, $app, $pass, $passIsPub, $ignoreState = false) {
 		$emailUserEsc = Storage::escape($emailUser);
+		$emailDomainEsc = Storage::escape($emailDomain);
 		$storageNodeEsc = Storage::escape($storageNode);
 		$appEsc = Storage::escape($app);
 		$md5Pass = md5($pass);
@@ -37,13 +39,18 @@ class Accounts {
 		$partitionInt = (int)$partition;
 		Storage::query("", "UPDATE `accounts$partitionInt` SET `state` = $state WHERE `accountId` = $accountIdInt");
 	}
-	function getState($accountId, $partition) {
+	public static function getState($accountId, $partition) {
 		$accountIdInt = (int) $accountId;
 		$partitionInt = (int)$partition;
 		$result = Storage::queryArr("", "SELECT `state` from `accounts$partitionInt` WHERE `accountId` = $accountIdInt");
 		if(count($result) != 1 || count($result[0]) != 1) {
-			throw new HttpInternalServerError();
+			return self::STATE_NONEXISTENT;
 		}
 		return (int)($result[0][0]);
+	}
+	public static function deleteAccount($accountId, $partition) {
+		$accountIdInt = (int) $accountId;
+		$partitionInt = (int)$partition;
+		$result = Storage::query("", "DELETE FROM `accounts$partitionInt` WHERE `accountId` = $accountIdInt");
 	}
 }

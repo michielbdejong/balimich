@@ -13,7 +13,12 @@ class Storage {
 		self::connect();
 		return self::$mysql->real_escape_string($str);
 	}
-	
+
+	public static function numRowsAffected() {
+		//return self::$mysql->num_rows_affected;
+		echo "TODO: implement numRowsAffected()\n";
+		return 1;
+	}	
 	public static function query($mcKey, $mysqlQuery) {
 file_put_contents('/tmp/mich.log', 'query '.$mysqlQuery."\n", FILE_APPEND);
 		self::connect();

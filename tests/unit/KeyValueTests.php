@@ -9,12 +9,8 @@ class KeyValueTests extends UnitTests {
 		$this->assertEqual($value, '{"value":"hello there","PubSign":"yours truly"}');
 		
 		echo "(get missing key)";
-		try {
-			$value = KeyValue::get(8, 123, 'abcd/efgh');
-			$this->assertDontReachHere('get missing key');
-		} catch (HttpNotFound $e) {
-			echo ".";
-		}
+		$value = KeyValue::get(8, 123, 'abcd/efgh');
+		$this->assertEqual($value, json_encode(array('value'=>null, 'PubSign'=>'')));
 
 		echo "(get key for non-account)";
 		try {
