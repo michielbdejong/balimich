@@ -2,10 +2,12 @@
 require_once BASE_DIR . 'Security.php';
 require_once BASE_DIR . 'KeyValue.php';//for migration
 require_once BASE_DIR . 'Messages.php';//for migration
+require_once BASE_DIR . 'Smtp.php';//for migration
 
 class Accounts {
 	private static function genRegistrationToken($email) {
-		return md5('Repelsteeltke'.$email);
+		return 'asdf';//for easily testing loginapp without having to set up real SMTP
+		//return md5('Repelsteeltke'.$email);
 	}
 	public static function register($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass, $fromNode = null) {
 		if($fromNode === null) {
@@ -16,7 +18,7 @@ class Accounts {
 		$email = $emailUser.'@'.$emailDomain;
 		$registrationToken = self::genRegistrationToken($email);
 		Security::create($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass, $accountState, $registrationToken);
-		$emailSenderClass = EMAIL_SENDER;
+		$emailSenderClass = EMAIL_SENDER_CLASS;
 		$emailSender = new $emailSenderClass();
 		$emailSender->sendRegistrationToken($email, $registrationToken, $fromNode);
 		return 'ok';

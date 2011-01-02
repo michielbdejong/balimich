@@ -29,7 +29,7 @@ class KeyValue {
 		if($values !== true) {
 			throw new HttpInternalServerError();
 		}
-		return '';
+		return 'ok';
 	}
 	public static function export($accountId, $partition, $keyPath, $needValue, $delete, $limit) {
 		if($limit === null) {

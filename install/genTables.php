@@ -3,9 +3,11 @@
 for($i=0;$i<256;$i++) {
 	echo "CREATE TABLE IF NOT EXISTS `accounts$i` ("
 		."`accountId` int unsigned not null auto_increment, "
-		."`user` varchar(255), "
-		."`node` varchar(255), "
+		."`emailUser` varchar(255), "
+		."`emailDomain` varchar(255), "
+		."`storageNode` varchar(255), "
 		."`app` varchar(255), "
+		."`registrationToken` varchar(255), "
 		."`state` int, "
 		."`md5PubPass` varchar(255), "
 		."`md5SubPass` varchar(255), "
@@ -16,7 +18,7 @@ for($i=0;$i<256;$i++) {
 		."`accountId` int, "
 		."`keyPath` varchar(255), "
 		."`value` text, "
-		."`PubSign02` varchar(255), "
+		."`PubSign` varchar(255), "
 		."PRIMARY KEY (`accountId`, `keyPath`)"
 		.");\n";
 
@@ -25,14 +27,20 @@ for($i=0;$i<256;$i++) {
 		."`accountId` int, "
 		."`keyPath` varchar(255), "
 		."`value` text, "
-		."`PubSign02` varchar(255), "
+		."`PubSign` varchar(255), "
 		."PRIMARY KEY (`messageId`)"
 		.");\n";
 
-	echo "CREATE TABLE IF NOT EXISTS `creationTokens$i` ("
-		."`emailUser` varchar(255), "
-		."`emailDomain` varchar(255), "
-		."`storageNode` varchar(255), "
-		."`app` varchar(255), "
-		."`token` varchar(255));\n";
+	echo "CREATE TABLE IF NOT EXISTS `emigrants$i` ("
+	        ."`accountId` int, "
+	        ."`migrationToken` varchar(255), "
+	        ."`toNode` varchar(255), "
+	        ."PRIMARY KEY (`accountId`));\n";
+
+	echo "CREATE TABLE IF NOT EXISTS `immigrants$i` ("
+	        ."`accountId` int, "
+	        ."`migrationToken` varchar(255), "
+	        ."`fromNode` varchar(255), "
+	        ."PRIMARY KEY (`accountId`));\n";
+	echo "\n";
 }
