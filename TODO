@@ -1,4 +1,5 @@
-* unit tests for ACCT.MIGRATE
+* unit tests for doMigrate (use stub http calls)
+* unit tests for http and smtp? how?
 * make loginapp work with newest email-based arch.
 * acceptance tests and/or testing with loginapp.
 * wrap up and deliver

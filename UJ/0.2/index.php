@@ -19,8 +19,8 @@ file_put_contents('/tmp/mich.log', "\nRESPONSE HEADER CODE:".$response->getHeade
 }
 try {
 	$params = Http::obtainParams();
-	$uj = new UnhostedJSONParser($params);
-	$response = $uj->parse();
+	$uj = new UnhostedJSONParser();
+	$response = $uj->parse($params);
 	HttpRespond(new HttpOk($response));
 } catch (HttpServiceUnavailable $e) {
 	HttpRespond($e);
