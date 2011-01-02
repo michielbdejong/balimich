@@ -2,44 +2,6 @@
 file_put_contents('/tmp/mich.log', "\n\nHOST:".$_SERVER['HTTP_HOST']." REFERER:".$_SERVER['HTTP_REFERER']." POST:".var_export($_POST, true)."\n", FILE_APPEND);
 require_once 'config.php';
 
-class HttpOk {//could extend Exception here but that would be inaccurate
-	private $msg;
-	public function __construct($msg) {
-		$this->msg = $msg;
-	}
-	public function getMessage() {
-		return $this->msg;
-	}	
-	public function getHeader() {
-return '';//		return "HTTP/1.1 200 OK";
-	}
-}
-class HttpServiceUnavailable extends Exception {
-	function getHeader() {
-		return "HTTP/1.1 513 Service Unavailable";
-	}
-}
-class HttpBadRequest extends Exception {
-	function getHeader() {
-		"HTTP/1.1 400 Bad Request";
-	}
-}
-class HttpGone extends Exception{ 
-	function getHeader() {
-		return "HTTP/1.1 410 Gone";
-	}
-}
-class HttpForbidden extends Exception{
-	function getHeader() {
-		return "HTTP/1.1 402 Forbidden";
-	}
-}
-class HttpInternalServerError extends Exception{
-	function getHeader() {
-		return "HTTP/1.1 500 Internal Server Error";
-	}
-}
-
 require_once BASE_DIR . 'Http.php';
 require_once BASE_DIR . 'UJ.php';
 

@@ -116,9 +116,24 @@ class AccountActionsTests extends UnitTests {
 		}
 	}
 
+	function testEmigration() {
+		echo "(emigrate)";
+		AccountActions::emigrate(15, 103, 'faraway.org', 'transgress');
+		$this->assertEqual(Accounts::getState(15, 103), Accounts::STATE_EMIGRANT);
+
+		echo "(test gone)";
+		try {
+			Accounts::getAccountId('gobabygogo', 'hotmail.com', 'mlsn.org', 'testApp.org', 'gobabygogoSub', false);
+			$this->assertDontReachHere('test gone');
+		} catch (HttpRedirect $e) {
+			$this->assertEqual($e->getMessage(), "faraway.org");
+		}
+	}
+
 	function runAll() {
 		$this->loadFixture('AccountActions');
 		echo "testRegistration:\n";$this->testRegistration();echo "\n";
 		echo "testImmigration:\n";$this->testImmigration();echo "\n";
+		echo "testEmigration:\n";$this->testEmigration();echo "\n";
 	}
 }

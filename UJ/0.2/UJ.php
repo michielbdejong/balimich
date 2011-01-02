@@ -86,7 +86,7 @@ class UnhostedJSONParser {
 			case 'ACCT.IMMIGRATE' :
 				return AccountActions::immigrate($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass'], $params['migrationToken'], $params['fromNode']);
 			case 'ACCT.MIGRATE' :
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken'], 'migrationToken');
+				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken'], 'migrationToken', false);
 				if(!isset($params['group'])) {
 					$params['group']=null;
 				}

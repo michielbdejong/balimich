@@ -21,3 +21,46 @@ class Http {
 		return $_POST;
 	}
 }
+
+class HttpOk {//could extend Exception here but that would be inaccurate
+	private $msg;
+	public function __construct($msg) {
+		$this->msg = $msg;
+	}
+	public function getMessage() {
+		return $this->msg;
+	}	
+	public function getHeader() {
+return '';//		return "HTTP/1.1 200 OK";
+	}
+}
+class HttpServiceUnavailable extends Exception {
+	function getHeader() {
+		return "HTTP/1.1 513 Service Unavailable";
+	}
+}
+class HttpBadRequest extends Exception {
+	function getHeader() {
+		"HTTP/1.1 400 Bad Request";
+	}
+}
+class HttpRedirect extends Exception {
+	function getHeader() {
+		"HTTP/1.1 302 Moved Permanently";
+	}
+}
+class HttpGone extends Exception{ 
+	function getHeader() {
+		return "HTTP/1.1 410 Gone";
+	}
+}
+class HttpForbidden extends Exception{
+	function getHeader() {
+		return "HTTP/1.1 402 Forbidden";
+	}
+}
+class HttpInternalServerError extends Exception{
+	function getHeader() {
+		return "HTTP/1.1 500 Internal Server Error";
+	}
+}

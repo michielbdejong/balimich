@@ -10,7 +10,7 @@ class Accounts {
 	const STATE_PENDINGIMMIGRANT = 4;
 	const STATE_IMMIGRANT = 5;
 
-	public static function getAccountId($emailUser, $emailDomain, $storageNode, $app, $pass, $passIsPub, $ignoreState = false) {
+	public static function getAccountId($emailUser, $emailDomain, $storageNode, $app, $pass, $passIsPub, $checkState = true) {
 		$emailUserEsc = Storage::escape($emailUser);
 		$emailDomainEsc = Storage::escape($emailDomain);
 		$storageNodeEsc = Storage::escape($storageNode);
@@ -31,21 +31,17 @@ class Accounts {
 		if(!is_array($result) || count($result) != 1) {
 			throw new HttpForbidden('');
 		}
-			
-		if($result[0][1] == self::STATE_GONE) {
-			throw new HttpGone();
-		}
 		$accountIdInt = (int)$result[0][0];
-//		if($passIsPub === 'migrationToken') {//TODO: refactor this so it doesn't use a "trinary boolean" in this ugly way
-//			$migrationTokenEsc = Storage::escape($pass);
-//			if($result[0][1] == self::STATE_GONE) {
-//				throw new HttpForbidden('not an emigrant');
-//			}
-//			$emigrant = Storage::queryArr("", "SELECT * FROM `emigrants$partitionInt` WHERE `accountId` = $accountIdInt AND `migrationToken` = '$migrationTokenEsc'");
-//			if(!is_array($emigrant) || count($emigrant) != 1) {
-//				throw new HttpForbidden('');
-//			}
-//		}
+		if($checkState) {		
+			if($result[0][1] == self::STATE_GONE) {
+				throw new HttpGone();
+			}
+			
+			if($result[0][1] == self::STATE_EMIGRANT) {
+				$emigrantTo = Storage::queryVal("", "SELECT `toNode` FROM `emigrants$partitionInt` WHERE `accountId` = $accountIdInt");
+				throw new HttpRedirect($emigrantTo);
+			}
+		}
 		return array($accountIdInt, $partitionInt);
 	}
 	public static function setState($accountId, $partition, $state) {

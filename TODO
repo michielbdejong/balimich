@@ -1,0 +1,6 @@
+* clean up getAccountId. Right now, it's very messy, because of the hacky way in which i added ACCT.MIGRATE
+* clean up relation between Accounts and AccountActions. Since Accounts should be able to respond with are direct, it should include at least the emigrants table. Then AccountActions should probably not access Storage directly. Maybe I should rename Accounts to Security and AccountActions to Accounts.
+* unit tests for ACCT.MIGRATE
+* acceptance tests and/or testing with loginapp.
+* make loginapp work with newest email-based arch.
+* wrap up and deliver

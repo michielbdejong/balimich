@@ -44,4 +44,12 @@ file_put_contents('/tmp/mich.log', 'ise '.self::$mysql->error."\n", FILE_APPEND)
 file_put_contents('/tmp/mich.log', 'queryArr result: '.var_export($result, true)."\n", FILE_APPEND);
 		return $result;
 	}
+	public static function queryVal($mcKey, $mysqlQuery) {
+		$result = self::queryArr($mcKey, $mysqlQuery);
+		if(is_array($result) && count($result) == 1 && is_array($result[0]) && count($result[0] == 1)) {
+	 		return  $result[0][0];
+		} else {
+			throw new HttpInternalServerError();
+		}
+	}
 }

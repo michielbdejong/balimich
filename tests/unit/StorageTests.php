@@ -22,6 +22,17 @@ class StorageTests extends UnitTests {
 		echo ".";
 	}
 		
+	function testQueryVal() {
+		echo "(insert)";
+		Storage::query("someMcKey", "INSERT INTO `testTable` (`foo`) VALUES ('bar2')");
+		echo ".(queryArr select)";
+		$result = Storage::queryVal("someMcKey", "SELECT * FROM `testTable`");
+		$this->assertEqual($result, "bar2");
+		echo "(delete)";
+		Storage::query("someMcKey", "DELETE FROM `testTable` WHERE `foo`='bar2'");
+		echo ".";
+	}
+		
 	function testEscape() {
 		echo "(escape)";
 		$escaped = Storage::escape("asdf' OR ''='");

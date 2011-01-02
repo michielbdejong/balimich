@@ -75,9 +75,12 @@ abstract class UnitTests {
 			}
 			break;
 		case 'AccountActions':
-			if(!(	$this->createAccountsTable(110) 
+			if(!(	$this->createAccountsTable(103) 
 			     && $this->createAccountsTable(105) 
-			     && $this->createImmigrantsTable(105) 
+			     && $this->createAccountsTable(110) 
+			     && $this->createEmigrantsTable(103)
+			     && $this->createImmigrantsTable(105)
+			     && $this->createAccount(15, 103, 'gobabygogo', 'hotmail.com', 'mlsn.org', 'testApp.org', 2, 'gobabygogoPub', 'gobabygogoSub')
 			     )) {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}
