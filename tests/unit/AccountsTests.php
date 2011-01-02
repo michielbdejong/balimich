@@ -26,7 +26,7 @@ class AccountsTests extends UnitTests {
 		}
 
 		echo "(get account id)";
-		$accountIdPart = Security::getAccountId('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub', true);
+		$accountIdPart = Security::getAccountIdWithPub('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub');
 		$this->assertEqual($accountIdPart, array(1, 110));
 		list($accountId, $partition) = $accountIdPart;
 
@@ -39,7 +39,7 @@ class AccountsTests extends UnitTests {
 
 		echo "(repeat register after disappear)";
 		Accounts::register('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub', 'newcoSub');
-		$accountIdPart = Security::getAccountId('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub', true);
+		$accountIdPart = Security::getAccountIdWithPub('newco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'newcoPub');
 		$this->assertEqual($accountIdPart, array(2, 110));
 
 		echo "(get state)";
@@ -82,7 +82,7 @@ class AccountsTests extends UnitTests {
 		}
 
 		echo "(get account id)";
-		$accountIdPart = Security::getAccountId('imco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'imcoPub', true);
+		$accountIdPart = Security::getAccountIdWithPub('imco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'imcoPub');
 		$this->assertEqual($accountIdPart, array(1, 105));
 		list($accountId, $partition) = $accountIdPart;
 
@@ -95,7 +95,7 @@ class AccountsTests extends UnitTests {
 
 		echo "(repeat immigrate after disappear)";
 		Accounts::immigrate('imco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'imcoPub4', 'imcoSub4', 'moving4', 'elsewhere4.org');
-		$accountIdPart = Security::getAccountId('imco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'imcoPub4', true);
+		$accountIdPart = Security::getAccountIdWithPub('imco', 'hotmail.com', 'mlsn.org', 'testApp.org', 'imcoPub4');
 		$this->assertEqual($accountIdPart, array(2, 105));
 
 		echo "(get state)";
@@ -123,7 +123,7 @@ class AccountsTests extends UnitTests {
 
 		echo "(test gone)";
 		try {
-			Security::getAccountId('gobabygogo', 'hotmail.com', 'mlsn.org', 'testApp.org', 'gobabygogoSub', false);
+			Security::getAccountIdWithSub('gobabygogo', 'hotmail.com', 'mlsn.org', 'testApp.org', 'gobabygogoSub');
 			$this->assertDontReachHere('test gone');
 		} catch (HttpRedirect $e) {
 			$this->assertEqual($e->getMessage(), "faraway.org");

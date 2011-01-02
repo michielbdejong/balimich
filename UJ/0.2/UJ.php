@@ -57,36 +57,36 @@ class UnhostedJSONParser {
 		//switch(protocol) { case 'UJ/0.2':
 		switch($action) {
 			case 'KV.GET' : 
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass'], false);
+				list($accountId, $partition) = Security::getAccountIdWithSub($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass']);
 				return KeyValue::get($accountId, $partition, $params['keyPath']);
 			case 'KV.SET' : 
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				list($accountId, $partition) = Security::getAccountIdWithPub($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass']);
 				return KeyValue::set($accountId, $partition, $params['keyPath'], $params['value'], $params['PubSign']);
 			case 'MSG.SEND' : 
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass'], false);
+				list($accountId, $partition) = Security::getAccountIdWithSub($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass']);
 				return Messages::send($accountId, $partition, $params['keyPath'], $params['value'], $params['PubSign']);
 			case 'MSG.RECEIVE' : 
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				list($accountId, $partition) = Security::getAccountIdWithPub($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass']);
 				return Messages::receive($accountId, $partition, $params['keyPath'], ($params['delete'] == 'true'), $params['limit']);
 			case 'ACCT.REGISTER' : 
 				return Accounts::register($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass']);
 			case 'ACCT.CONFIRM' : 
 				//this call is only here to throw exceptions as appropriate:
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				list($accountId, $partition) = Security::getAccountIdWithPub($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass']);
 				return Accounts::confirm($accountId, $partition, $params['registrationToken']);
 			case 'ACCT.DISAPPEAR' : 
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				list($accountId, $partition) = Security::getAccountIdWithPub($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass']);
 				return Accounts::disappear($accountId, $partition);
 			case 'ACCT.GETSTATE' : 
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				list($accountId, $partition) = Security::getAccountIdWithPub($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass']);
 				return Security::getState($accountId, $partition);
 			case 'ACCT.EMIGRATE' :
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				list($accountId, $partition) = Security::getAccountIdWithPub($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass']);
 				return Accounts::emigrate($accountId, $partition, $params['toNode'], $params['migrationToken']);
 			case 'ACCT.IMMIGRATE' :
 				return Accounts::immigrate($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass'], $params['migrationToken'], $params['fromNode']);
 			case 'ACCT.MIGRATE' :
-				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken'], 'migrationToken', false);
+				list($accountId, $partition) = Security::getAccountIdWithMigrationToken($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken']);
 				if(!isset($params['group'])) {
 					$params['group']=null;
 				}

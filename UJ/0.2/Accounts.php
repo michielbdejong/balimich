@@ -38,7 +38,7 @@ class Accounts {
 	}
 	public static function immigrate($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass, $migrationToken, $fromNode) {
 		self::register($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass, $fromNode);
-		list($accountId, $partition) = Security::getAccountId($emailUser, $emailDomain, $storageNode, $app, $pubPass, true);
+		list($accountId, $partition) = Security::getAccountIdWithPub($emailUser, $emailDomain, $storageNode, $app, $pubPass);
 		return Security::createImmigrant($accountId, $partition, $migrationToken, $fromNode);
 	}
 	public static function migrate($accountId, $partition, $migrationToken, $group, $keyPath, $needValue, $delete, $limit) {

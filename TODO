@@ -1,5 +1,4 @@
-* clean up getAccountId. Right now, it's very messy, because of the hacky way in which i added ACCT.MIGRATE
 * unit tests for ACCT.MIGRATE
-* acceptance tests and/or testing with loginapp.
 * make loginapp work with newest email-based arch.
+* acceptance tests and/or testing with loginapp.
 * wrap up and deliver
