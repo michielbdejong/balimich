@@ -121,13 +121,54 @@ class AccountsTests extends UnitTests {
 		Accounts::emigrate(15, 103, 'faraway.org', 'transgress');
 		$this->assertEqual(Security::getState(15, 103), Security::STATE_EMIGRANT);
 
-		echo "(test gone)";
+		echo "(test gone sub)";
 		try {
 			Security::getAccountIdWithSub('gobabygogo', 'hotmail.com', 'mlsn.org', 'testApp.org', 'gobabygogoSub');
 			$this->assertDontReachHere('test gone');
 		} catch (HttpRedirect $e) {
 			$this->assertEqual($e->getMessage(), "faraway.org");
 		}
+
+		echo "(test gone pub)";
+		try {
+			Security::getAccountIdWithPub('gobabygogo', 'hotmail.com', 'mlsn.org', 'testApp.org', 'gobabygogoPub');
+			$this->assertDontReachHere('test gone');
+		} catch (HttpRedirect $e) {
+			$this->assertEqual($e->getMessage(), "faraway.org");
+		}
+
+		echo "(test migrate foo key forbidden)";
+		try {
+			Accounts::migrate(15, 103, 'trafff', 'KV', 'foo', true, false, 3);
+			$this->assertDontReachHere('test migrate foo key forbidden');
+		} catch (HttpForbidden $e) {
+			echo ".";
+		}
+
+		echo "(test migrate foo key)";
+		$response = Accounts::migrate(15, 103, 'transgress', 'KV', 'foo', true, false, 3);
+		$this->assertEqual($response, array('KV'=>array('foo'=>array('value'=>'bar', 'PubSign'=>'yours truly'))));
+
+		echo "(test migrate foo key del)";
+		$response = Accounts::migrate(15, 103, 'transgress', 'KV', 'foo', false, true, 3);
+		$this->assertEqual($response, 'ok');
+
+		echo "(test migrate foo key 404)";
+		try {
+			Accounts::migrate(15, 103, 'transgress', 'KV', 'foo', true, false, 3);
+			$this->assertDontReachHere('test migrate foo key 404');
+		} catch (HttpNotFound $e) {
+			echo ".";
+		}
+
+		echo "(test migrate foo key forbidden 404)";
+		try {
+			Accounts::migrate(15, 103, 'trafff', 'KV', 'foo', true, false, 3);
+			$this->assertDontReachHere('test migrate foo key forbidden 404');
+		} catch (HttpForbidden $e) {
+			echo ".";
+		}
+
 	}
 
 	function runAll() {

@@ -64,3 +64,8 @@ class HttpInternalServerError extends Exception{
 		return "HTTP/1.1 500 Internal Server Error";
 	}
 }
+class HttpNotFound extends Exception{
+	function getHeader() {
+		return "HTTP/1.1 404 Not Found";
+	}
+}

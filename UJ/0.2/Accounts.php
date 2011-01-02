@@ -1,5 +1,7 @@
 <?php
 require_once BASE_DIR . 'Security.php';
+require_once BASE_DIR . 'KeyValue.php';//for migration
+require_once BASE_DIR . 'Messages.php';//for migration
 
 class Accounts {
 	private static function genRegistrationToken($email) {
@@ -45,17 +47,32 @@ class Accounts {
 		Security::checkEmigrant($accountId, $partition, $migrationToken);
 		switch($group) {
 		case 'KV':
-			$entries = array();//KeyValue::export($accountId, $partition, $needValue, $delete, $limit);
-			return array('KV'=>$entries);
+			$entries = KeyValue::export($accountId, $partition, $keyPath, $needValue, $delete, $limit);
+			if($needValue) {
+				return array('KV'=>$entries);
+			} else {
+				return $entries;
+			}
 		case 'MSG':
-			$messages = array();//Messages::export($accountId, $partition, $needValue, $delete, $limit);
-			return array('MSG'=>$messages);
+			$messages = Messages::export($accountId, $partition, $keyPath, $needValue, $delete, $limit);
+			if($needValue) {
+				return array('MSG'=>$entries);
+			} else {
+				return $entries;
+			}
 		default:
 			$messages = array();//Messages::export($accountId, $partition, $needValue, $delete, $limit);
 			if(count($messages) < $limit) {
 				$entries = array();//KeyValue::export($accountId, $partition, $needValue, $delete, $limit - count($messages));
 			}
-			return array('KV'=>$entries, 'MSG'=>$messages);
+			if($needValue) {
+				return array('KV'=>$entries, 'MSG'=>$messages);
+			} else {
+				if($entries != 'ok') {
+					return $entries;
+				}
+				return $messages;
+			}
 		}
 	}
 	public static function doMigration($emailUser, $emailDomain, $storageNode, $app, $group, $keyPath) {
