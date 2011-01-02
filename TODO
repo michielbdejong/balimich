@@ -1,5 +1,4 @@
 * clean up getAccountId. Right now, it's very messy, because of the hacky way in which i added ACCT.MIGRATE
-* clean up relation between Accounts and Security. Since Security should be able to respond with a redirect, it should include at least the emigrants table. Then Accounts should probably not access Storage directly.
 * unit tests for ACCT.MIGRATE
 * acceptance tests and/or testing with loginapp.
 * make loginapp work with newest email-based arch.

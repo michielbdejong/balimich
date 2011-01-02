@@ -136,12 +136,12 @@ abstract class UnitTests {
 	}
 	function assertEqual($a, $b) {
 		if(!$this->isEqual($a, $b)) {
-			echo "F: (".var_export($a, TRUE).") != (".var_export($b, TRUE).")\n";
+			die("\nF: (".var_export($a, TRUE).") != (".var_export($b, TRUE).")\n");
 		} else {
 			echo ".";
 		}
 	}
 	function assertDontReachHere($str) {
-		echo "F: (not supposed to reach this point: $str)\n";
+		echo die("\nF: (not supposed to reach this point: $str)\n");
 	}
 }
