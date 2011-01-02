@@ -63,7 +63,7 @@ abstract class UnitTests {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}
 			break;
-		case 'Accounts':
+		case 'Security':
 			if(!(	$this->createAccountsTable(103) 
 			     && $this->createAccountsTable(109) 
 			     && $this->createAccountsTable(110) 
@@ -74,7 +74,7 @@ abstract class UnitTests {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}
 			break;
-		case 'AccountActions':
+		case 'Accounts':
 			if(!(	$this->createAccountsTable(103) 
 			     && $this->createAccountsTable(105) 
 			     && $this->createAccountsTable(110) 

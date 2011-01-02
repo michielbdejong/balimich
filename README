@@ -15,23 +15,23 @@ Here is a rough diagram:
  |                          |           |
  |                        UJ.php     config.php
  |                          |
- |        ----------------------------------------------------
- |        |            |                 |                   |
- | AccountActions.php  |                 |                   |
- |    |  |   |    |    |                 |                   |
- |    |  |   |  Accounts.php        KeyValue.php        Messages.php
- |    |  |   |       |                   |                   |
- |    |  |   |       -----------------------------------------
- |    |  |   |       |
- |    |  |   |       |
+ |        --------------------------------------------------
+ |        |          |                 |                   |
+ |   Accounts.php    |                 |                   |
+ |    |  |  |  |     |                 |                   |
+ |    |  |  |  Security.php        KeyValue.php        Messages.php
+ |    |  |  |       |                  |                   |
+ |    |  |  |       ----------------------------------------
+ |    |  |  |       |
+ |    |  |  |       |
 Http.php |  Storage.php
          |
        Smtp.php
 
 index.php and config.php are obvious.
 UJ.php handles the parsing of UJ/0.2 action parameters.
-Accounts.php handles authentication and access control, independent of which command group the action belongs to.
-AccountActions.php handles actions from the ACCT command group.
+Security.php handles authentication and access control, independent of which command group the action belongs to.
+Accounts.php handles actions from the ACCT command group.
 Similarly, KeyValue.php handles KV actions, and Messages.php handles MSG actions.
 Storage handles mysql storage, which is partitioned into 26 shards, by the ascii code of the first character of the user name. I'll add a memcache layer to it at some point.
 Http.php handles parsing of both incoming and outgoing (in case of node-to-node migration) Http, and Smtp.php handles the sending of registration tokens by email.

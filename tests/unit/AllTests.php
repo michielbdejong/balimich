@@ -8,16 +8,16 @@ require_once 'StorageTests.php';
 $storageTests = new StorageTests();
 $storageTests->runAll();
 
+echo "\nSecurity\n========\n";
+require_once 'SecurityTests.php';
+
+$accountsTests = new SecurityTests();
+$accountsTests->runAll();
+
 echo "\nAccounts\n========\n";
 require_once 'AccountsTests.php';
 
-$accountsTests = new AccountsTests();
-$accountsTests->runAll();
-
-echo "\nAccountActions\n========\n";
-require_once 'AccountActionsTests.php';
-
-$accountActionsTests = new AccountActionsTests();
+$accountActionsTests = new AccountsTests();
 $accountActionsTests->runAll();
 
 echo "\nKeyValue\n========\n";

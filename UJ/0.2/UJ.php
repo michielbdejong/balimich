@@ -1,6 +1,6 @@
 <?php
+require_once BASE_DIR . 'Security.php';
 require_once BASE_DIR . 'Accounts.php';
-require_once BASE_DIR . 'AccountActions.php';
 require_once BASE_DIR . 'KeyValue.php';
 require_once BASE_DIR . 'Messages.php';
 
@@ -57,43 +57,43 @@ class UnhostedJSONParser {
 		//switch(protocol) { case 'UJ/0.2':
 		switch($action) {
 			case 'KV.GET' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass'], false);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass'], false);
 				return KeyValue::get($accountId, $partition, $params['keyPath']);
 			case 'KV.SET' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
 				return KeyValue::set($accountId, $partition, $params['keyPath'], $params['value'], $params['PubSign']);
 			case 'MSG.SEND' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass'], false);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass'], false);
 				return Messages::send($accountId, $partition, $params['keyPath'], $params['value'], $params['PubSign']);
 			case 'MSG.RECEIVE' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
 				return Messages::receive($accountId, $partition, $params['keyPath'], ($params['delete'] == 'true'), $params['limit']);
 			case 'ACCT.REGISTER' : 
-				return AccountActions::register($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass']);
+				return Accounts::register($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass']);
 			case 'ACCT.CONFIRM' : 
 				//this call is only here to throw exceptions as appropriate:
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
-				return AccountActions::confirm($accountId, $partition, $params['registrationToken']);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				return Accounts::confirm($accountId, $partition, $params['registrationToken']);
 			case 'ACCT.DISAPPEAR' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
-				return AccountActions::disappear($accountId, $partition);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				return Accounts::disappear($accountId, $partition);
 			case 'ACCT.GETSTATE' : 
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
-				return Accounts::getState($accountId, $partition);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				return Security::getState($accountId, $partition);
 			case 'ACCT.EMIGRATE' :
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
-				return AccountActions::emigrate($accountId, $partition, $params['toNode'], $params['migrationToken']);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], true);
+				return Accounts::emigrate($accountId, $partition, $params['toNode'], $params['migrationToken']);
 			case 'ACCT.IMMIGRATE' :
-				return AccountActions::immigrate($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass'], $params['migrationToken'], $params['fromNode']);
+				return Accounts::immigrate($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['pubPass'], $params['subPass'], $params['migrationToken'], $params['fromNode']);
 			case 'ACCT.MIGRATE' :
-				list($accountId, $partition) = Accounts::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken'], 'migrationToken', false);
+				list($accountId, $partition) = Security::getAccountId($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken'], 'migrationToken', false);
 				if(!isset($params['group'])) {
 					$params['group']=null;
 				}
 				if(!isset($params['keyPath'])) {
 					$params['keyPath']=null;
 				}
-				return AccountActions::migrate($accountId, $partition, $params['migrationToken'], $params['group'], $params['keyPath'], $params['needValue'], $params['delete'], $params['limit']);
+				return Accounts::migrate($accountId, $partition, $params['migrationToken'], $params['group'], $params['keyPath'], $params['needValue'], $params['delete'], $params['limit']);
 			default:
 				//shoudn't get here, because action was checked by checkFields.
 				throw new HttpInternalServerError('action not recognized');
