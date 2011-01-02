@@ -56,9 +56,9 @@ class Accounts {
 		case 'MSG':
 			$messages = Messages::export($accountId, $partition, $keyPath, $needValue, $delete, $limit);
 			if($needValue) {
-				return array('MSG'=>$entries);
+				return array('MSG'=>$messages);
 			} else {
-				return $entries;
+				return $messages;
 			}
 		default:
 			$messages = array();//Messages::export($accountId, $partition, $needValue, $delete, $limit);

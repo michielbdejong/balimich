@@ -41,4 +41,42 @@ class Messages {
 		}
 		return '';
 	}
+	public static function export($accountId, $partition, $keyPath, $needValue, $delete, $limit) {
+		if($limit === null) {
+			$limit = 101;
+		}
+		$accountIdInt = (int)$accountId;
+		$partitionInt = (int)$partition;
+		$keyPathEsc = Storage::escape($keyPath);
+		$limitInt = (int)$limit;
+		if($needValue) {
+			$fieldsQ = '`messageId`, `keyPath`, `value`, `PubSign`';
+		} else {
+			$fieldsQ = '`messageId`';
+		}
+		$msgs = Storage::queryArr("", "SELECT $fieldsQ FROM `messages$partitionInt` WHERE `accountId` = $accountIdInt AND `keyPath` LIKE '$keyPathEsc%' LIMIT $limitInt");
+		if(count($msgs) == 0) {
+			throw new HttpNotFound();
+		}
+		if($delete) {
+			$idsToDeleteEsc = array();
+			foreach ($msgs as $row) {
+				$idsToDeleteEsc[] = Storage::escape($row[0]);
+			}
+			$idsToDeleteQ = implode(', ', $idsToDeleteEsc);
+			Storage::query("", "DELETE FROM `messages$partitionInt` WHERE `messageId` IN ($idsToDeleteQ)");
+		}
+		if($needValue) {
+			$ret = array();
+			foreach($msgs as $row) {
+				if(!isset($ret[$row[1]])) {
+					$ret[$row[1]] = array();
+				}
+				$ret[$row[1]][] = array('value'=>$row[2], 'PubSign'=>$row[3]);
+			}
+			return $ret;
+		} else {
+			return 'ok';
+		}
+	}
 }

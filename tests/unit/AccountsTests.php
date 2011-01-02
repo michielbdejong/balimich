@@ -149,6 +149,10 @@ class AccountsTests extends UnitTests {
 		$response = Accounts::migrate(15, 103, 'transgress', 'KV', 'foo', true, false, 3);
 		$this->assertEqual($response, array('KV'=>array('foo'=>array('value'=>'bar', 'PubSign'=>'yours truly'))));
 
+		echo "(test migrate any key)";
+		$response = Accounts::migrate(15, 103, 'transgress', 'KV', '', true, false, 3);
+		$this->assertEqual($response, array('KV'=>array('foo'=>array('value'=>'bar', 'PubSign'=>'yours truly'))));
+
 		echo "(test migrate foo key del)";
 		$response = Accounts::migrate(15, 103, 'transgress', 'KV', 'foo', false, true, 3);
 		$this->assertEqual($response, 'ok');
@@ -165,6 +169,58 @@ class AccountsTests extends UnitTests {
 		try {
 			Accounts::migrate(15, 103, 'trafff', 'KV', 'foo', true, false, 3);
 			$this->assertDontReachHere('test migrate foo key forbidden 404');
+		} catch (HttpForbidden $e) {
+			echo ".";
+		}
+
+		echo "(test migrate foo msg forbidden)";
+		try {
+			Accounts::migrate(15, 103, 'trafff', 'MSG', 'foo', true, false, 3);
+			$this->assertDontReachHere('test migrate foo msg forbidden');
+		} catch (HttpForbidden $e) {
+			echo ".";
+		}
+
+		echo "(test migrate foo msg)";
+		$response = Accounts::migrate(15, 103, 'transgress', 'MSG', 'foo', true, false, 3);
+		$this->assertEqual($response, 
+			array('MSG'=>
+				array('foo'=> 
+					array(
+						array('value'=>'msg1', 'PubSign'=>'yours truly'), 
+						array('value'=>'msg2', 'PubSign'=>'yours truly')
+					)
+				)
+			));
+
+		echo "(test migrate any msg)";
+		$response = Accounts::migrate(15, 103, 'transgress', 'MSG', '', true, false, 3);
+		$this->assertEqual($response, 
+			array('MSG'=>
+				array('foo'=> 
+					array(
+						array('value'=>'msg1', 'PubSign'=>'yours truly'), 
+						array('value'=>'msg2', 'PubSign'=>'yours truly')
+					)
+				)
+			));
+
+		echo "(test migrate foo msg del)";
+		$response = Accounts::migrate(15, 103, 'transgress', 'MSG', 'foo', false, true, 3);
+		$this->assertEqual($response, 'ok');
+
+		echo "(test migrate foo msg 404)";
+		try {
+			Accounts::migrate(15, 103, 'transgress', 'MSG', 'foo', true, false, 3);
+			$this->assertDontReachHere('test migrate foo msg 404');
+		} catch (HttpNotFound $e) {
+			echo ".";
+		}
+
+		echo "(test migrate foo msg forbidden 404)";
+		try {
+			Accounts::migrate(15, 103, 'trafff', 'MSG', 'foo', true, false, 3);
+			$this->assertDontReachHere('test migrate foo msg forbidden 404');
 		} catch (HttpForbidden $e) {
 			echo ".";
 		}

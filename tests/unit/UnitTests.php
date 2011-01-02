@@ -81,8 +81,11 @@ abstract class UnitTests {
 			     && $this->createEmigrantsTable(103)
 			     && $this->createImmigrantsTable(105)
 			     && $this->createEntriesTable(103)
+			     && $this->createMessagesTable(103)
 			     && $this->createAccount(15, 103, 'gobabygogo', 'hotmail.com', 'mlsn.org', 'testApp.org', 2, 'gobabygogoPub', 'gobabygogoSub')
 			     && $this->createEntry(15, 103, 'foo', 'bar', 'yours truly')
+			     && $this->createMessage(15, 103, 'foo', 'msg1', 'yours truly')
+			     && $this->createMessage(15, 103, 'foo', 'msg2', 'yours truly')
 			     )) {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}
