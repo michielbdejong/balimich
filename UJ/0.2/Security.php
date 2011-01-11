@@ -10,14 +10,13 @@ class Security {
 	const STATE_PENDINGIMMIGRANT = 4;
 	const STATE_IMMIGRANT = 5;
 
-	private static function getAccountIdWithClause($emailUser, $emailDomain, $storageNode, $app, $passClauseEsc) {
-		$emailUserEsc = Storage::escape($emailUser);
-		$emailDomainEsc = Storage::escape($emailDomain);
+	private static function getAccountIdWithClause($user, $storageNode, $app, $passClauseEsc) {
+		$userEsc = Storage::escape($user);
 		$storageNodeEsc = Storage::escape($storageNode);
 		$appEsc = Storage::escape($app);
-		$partitionInt = (int)ord(substr($emailUserEsc, 0, 1));
+		$partitionInt = (int)ord(substr($userEsc, 0, 1));
 		$result = Storage::queryArr("",
-		                               "SELECT `accountId`, `state` FROM `accounts$partitionInt` WHERE `emailUser` = '$emailUserEsc' AND `emailDomain` = '$emailDomainEsc' AND `storageNode` = '$storageNodeEsc' "
+		                               "SELECT `accountId`, `state` FROM `accounts$partitionInt` WHERE `emailUser` = '$userEsc' AND `storageNode` = '$storageNodeEsc' "
 		                               ."AND `app` = '$appEsc'$passClauseEsc");
 		if(!is_array($result) || count($result) != 1) {
 			throw new HttpForbidden('');
@@ -34,22 +33,21 @@ class Security {
 			throw new HttpRedirect($emigrantTo);
 		}
 	}
-	public static function getAccountIdWithPub($emailUser, $emailDomain, $storageNode, $app, $pubPass) {
-		$md5PassEsc = md5($pubPass);
+	public static function getAccountIdWithPassword($user, $storageNode, $app, $password) {
+		$md5PassEsc = md5($password);
 		$passClauseEsc = " AND `md5PubPass` = '$md5PassEsc'";
-		list($accountIdInt, $partitionInt, $stateInt) = self::getAccountIdWithClause($emailUser, $emailDomain, $storageNode, $app, $passClauseEsc);
+		list($accountIdInt, $partitionInt, $stateInt) = self::getAccountIdWithClause($user, $storageNode, $app, $passClauseEsc);
 		self::checkState($accountIdInt, $partitionInt, $stateInt);
 		return array($accountIdInt, $partitionInt);
 	}
-	public static function getAccountIdWithSub($emailUser, $emailDomain, $storageNode, $app, $subPass) {
-		$md5PassEsc = md5($subPass);
-		$passClauseEsc = " AND `md5SubPass` = '$md5PassEsc'";
-		list($accountIdInt, $partitionInt, $stateInt) = self::getAccountIdWithClause($emailUser, $emailDomain, $storageNode, $app, $passClauseEsc);
+	public static function getAccountIdWithoutPassword($user, $storageNode, $app) {
+		$passClauseEsc = "";//" AND `md5SubPass` = '$md5PassEsc'";
+		list($accountIdInt, $partitionInt, $stateInt) = self::getAccountIdWithClause($user, $storageNode, $app, $passClauseEsc);
 		self::checkState($accountIdInt, $partitionInt, $stateInt);
 		return array($accountIdInt, $partitionInt);
 	}
-	public static function getAccountIdWithMigrationToken($emailUser, $emailDomain, $storageNode, $app, $migrationToken) {
-		list($accountIdInt, $partitionInt, $stateInt) = self::getAccountIdWithClause($emailUser, $emailDomain, $storageNode, $app, '');
+	public static function getAccountIdWithMigrationToken($user, $storageNode, $app, $migrationToken) {
+		list($accountIdInt, $partitionInt, $stateInt) = self::getAccountIdWithClause($user, $storageNode, $app, '');
 		if($stateInt != self::STATE_EMIGRANT) {
 			throw new HttpForbidden();
 		}
