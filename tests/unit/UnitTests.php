@@ -6,9 +6,9 @@ abstract class UnitTests {
 	//TABLES:
 	private function createAccountsTable($partitionInt) {
 		return $this->mysql->query("CREATE TABLE `accounts$partitionInt` "
-		    ."(`accountId` int unsigned not null auto_increment, `emailUser` varchar(255), "
-		    ."`emailDomain` varchar(255), `storageNode` varchar(255), `app` varchar(255), "
-		    ."`registrationToken` varchar(255), `state` int, `md5PubPass` varchar(255), `md5SubPass` varchar(255), "
+		    ."(`accountId` int unsigned not null auto_increment, `user` varchar(255), "
+		    ."`storageNode` varchar(255), `app` varchar(255), "
+		    ."`registrationToken` varchar(255), `state` int, `md5Pass` varchar(255), "
 		    ."PRIMARY KEY (`accountId`))");
 	}
 	private function createEntriesTable($partitionInt) {
@@ -33,11 +33,11 @@ abstract class UnitTests {
 		    ."PRIMARY KEY (`accountId`))");
 	}
 	//ROWS:
-	private function createAccount($accountIdInt, $partitionInt, $emailUserEsc, $emailDomainEsc, $storageNodeEsc, $appEsc, 
-	                                                                                       $stateInt, $pubPass, $subPass) {
+	private function createAccount($accountIdInt, $partitionInt, $user, $storageNodeEsc, $appEsc, 
+	                                                                                       $stateInt, $pass) {
 		return $this->mysql->query("INSERT INTO `accounts$partitionInt` "
-		    ."(`accountId`, `emailUser`, `emailDomain`, `storageNode`, `app`, `state`, `md5Pubpass`, `md5SubPass`) "
-		    ."VALUES ($accountIdInt, '$emailUserEsc', '$emailDomainEsc', '$storageNodeEsc', '$appEsc', $stateInt, '".md5($pubPass)."', '".md5($subPass)."')");
+		    ."(`accountId`, `user`, `storageNode`, `app`, `state`, `md5Pass`) "
+		    ."VALUES ($accountIdInt, '$user', '$storageNodeEsc', '$appEsc', $stateInt, '".md5($pass)."')");
 	}
 	private function createEntry($accountIdInt, $partitionInt, $keyPathEsc, $valueEsc, $PubSignEsc) {
 		return $this->mysql->query("INSERT INTO `entries$partitionInt` "
@@ -68,8 +68,8 @@ abstract class UnitTests {
 			     && $this->createAccountsTable(109) 
 			     && $this->createAccountsTable(110) 
 			     && $this->createAccountsTable(112)
-			     && $this->createAccount(4, 109, 'mich', 'hotmail.com', 'mlsn.org', 'testApp.org', 1, 'michPub', 'michSub')
-			     && $this->createAccount(5, 103, 'goon', 'hotmail.com', 'mlsn.org', 'testApp.org', 2, 'goonPub', 'goonSub')
+			     && $this->createAccount(4, 109, 'mich@hotmail.com', 'mlsn.org', 'testApp.org', 1, 'michPub')
+			     && $this->createAccount(5, 103, 'goon@hotmail.com', 'mlsn.org', 'testApp.org', 2, 'goonPub')
 			     )) {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}
@@ -82,7 +82,7 @@ abstract class UnitTests {
 			     && $this->createImmigrantsTable(105)
 			     && $this->createEntriesTable(103)
 			     && $this->createMessagesTable(103)
-			     && $this->createAccount(15, 103, 'gobabygogo', 'hotmail.com', 'mlsn.org', 'testApp.org', 2, 'gobabygogoPub', 'gobabygogoSub')
+			     && $this->createAccount(15, 103, 'gobabygogo@hotmail.com', 'mlsn.org', 'testApp.org', 2, 'gobabygogoPub')
 			     && $this->createEntry(15, 103, 'foo', 'bar', 'yours truly')
 			     && $this->createMessage(15, 103, 'foo', 'msg1', 'yours truly')
 			     && $this->createMessage(15, 103, 'foo', 'msg2', 'yours truly')
@@ -113,7 +113,7 @@ abstract class UnitTests {
 			     && $this->createAccountsTable(112)
 			     && $this->createEmigrantsTable(109)
 			     && $this->createImmigrantsTable(109)//the immigrant will be a different accountId, but it all lives mixed in same db
-			     && $this->createAccount(4, 109, 'mich', 'hotmail.com', 'mlsn.org', 'testApp.org', 1, 'michPub', 'michSub')
+			     && $this->createAccount(4, 109, 'mich@hotmail.com', 'mlsn.org', 'testApp.org', 1, 'michPass')
 			     )) {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}

@@ -14,13 +14,27 @@ class UnhostedJSONParser {
 						'user' => true, 'method' => 'SET', 'keyHash' => true, 'value' => true
 					), 'pubSign' => true, 'password' => true),
 		            //
-		 'REGISTER' => array('password' => true, 'subPass' => true),
-		  'CONFIRM' => array('registrationToken' => true, 'password' => true),
-		'DISAPPEAR' => array('password' => true),
-		 'GETSTATE' => array('password' => true),
-		 'EMIGRATE' => array('password' => true, 'toNode' => true, 'migrationToken' => true),
-		'IMMIGRATE' => array('fromNode' => true, 'migrationToken' => true, 'password' => true, 'subPass' => true),
-		  'MIGRATE' => array('migrationToken' => true, 'delete' => true, 'limit' => true, 'needValue' => true, 'group' => false, 'keyHash' => false),
+		 'REGISTER' => array('storageNode' => true, 'app' => true, 'protocol' => 'KeyValue-0.2', 'command'=>array(
+						'method' => 'REGISTER', 'user' => true
+					), 'password' => true),
+		  'CONFIRM' => array('storageNode' => true, 'app' => true, 'protocol' => 'KeyValue-0.2', 'command'=>array(
+						'method' => 'CONFIRM', 'user' => true
+					), 'registrationToken' => true, 'password' => true),
+		'DISAPPEAR' => array('storageNode' => true, 'app' => true, 'protocol' => 'KeyValue-0.2', 'command'=>array(
+						'method' => 'DISAPPEAR', 'user' => true
+					), 'password' => true),
+		 'GETSTATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'KeyValue-0.2', 'command'=>array(
+		'method' => 'GETSTATE', 'user' => true
+), 'password' => true),
+		 'EMIGRATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'KeyValue-0.2', 'command'=>array(
+					'method' => 'EMIGRATE', 'user' => true, 'toNode' => true
+					), 'password' => true, 'migrationToken' => true),
+		'IMMIGRATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'KeyValue-0.2', 'command'=>array(
+						'method' => 'IMMIGRATE', 'user' => true, 'fromNode' => true
+					), 'migrationToken' => true, 'password' => true),
+		  'MIGRATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'KeyValue-0.2', 'command'=>array(
+						'method' => 'MIGRATE', 'delete' => true, 'limit' => true, 'needValue' => true, 'keyHash' => false
+					), 'migrationToken' => true),
 		            ),
 		);
 	function checkSpec($params, $spec) {

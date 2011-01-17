@@ -16,7 +16,7 @@ class Security {
 		$appEsc = Storage::escape($app);
 		$partitionInt = (int)ord(substr($userEsc, 0, 1));
 		$result = Storage::queryArr("",
-		                               "SELECT `accountId`, `state` FROM `accounts$partitionInt` WHERE `emailUser` = '$userEsc' AND `storageNode` = '$storageNodeEsc' "
+		                               "SELECT `accountId`, `state` FROM `accounts$partitionInt` WHERE `user` = '$userEsc' AND `storageNode` = '$storageNodeEsc' "
 		                               ."AND `app` = '$appEsc'$passClauseEsc");
 		if(!is_array($result) || count($result) != 1) {
 			throw new HttpForbidden('');
@@ -35,7 +35,7 @@ class Security {
 	}
 	public static function getAccountIdWithPassword($user, $storageNode, $app, $password) {
 		$md5PassEsc = md5($password);
-		$passClauseEsc = " AND `md5PubPass` = '$md5PassEsc'";
+		$passClauseEsc = " AND `md5Pass` = '$md5PassEsc'";
 		list($accountIdInt, $partitionInt, $stateInt) = self::getAccountIdWithClause($user, $storageNode, $app, $passClauseEsc);
 		self::checkState($accountIdInt, $partitionInt, $stateInt);
 		return array($accountIdInt, $partitionInt);
@@ -77,25 +77,23 @@ class Security {
 		$partitionInt = (int)$partition;
 		$result = Storage::query("", "DELETE FROM `accounts$partitionInt` WHERE `accountId` = $accountIdInt");
 	}
-	public static function create($emailUser, $emailDomain, $storageNode, $app, $pubPass, $subPass, $accountState, $registrationToken) {
-		$emailUserEsc = Storage::escape($emailUser);
-		$emailDomainEsc = Storage::escape($emailDomain);
+	public static function create($user, $storageNode, $app, $pass, $accountState, $registrationToken) {
+		$userEsc = Storage::escape($user);
 		$storageNodeEsc = Storage::escape($storageNode);
 		$appEsc = Storage::escape($app);
-		$md5PubPass = md5($pubPass);
-		$md5SubPass = md5($subPass);
-		$partition = ord(substr($emailUserEsc, 0, 1));
+		$md5Pass = md5($pass);
+		$partition = ord(substr($userEsc, 0, 1));
 		$accountStateInt = (int)$accountState;
 		$registrationTokenEsc = Storage::escape($registrationToken);
 		$existingCount = Storage::queryArr("", "SELECT COUNT(*) FROM `accounts$partition` WHERE "
-		    ."`emailUser` = '$emailUserEsc' AND `emailDomain` = '$emailDomainEsc' "
+		    ."`user` = '$userEsc' "
 		    ."AND `storageNode` = '$storageNodeEsc' AND `app` = '$appEsc'");
 		if(!is_array($existingCount) || ! is_array($existingCount[0]) || $existingCount[0][0] != '0') {
 			throw new HttpForbidden('combination of email and app already exists on this unhosted storage node');
 		}
-		Storage::query("acctmd5PubPass:$emailUserEsc:$emailDomainEsc:$storageNodeEsc:$appEsc:$md5PubPass",
-		                "INSERT INTO `accounts$partition` (`emailUser`, `emailDomain`, `storageNode`, `app`, `md5PubPass`, `md5SubPass`, `state`, `registrationToken`) "
-		                                           ."VALUES ('$emailUserEsc', '$emailDomainEsc', '$storageNodeEsc', '$appEsc', '$md5PubPass', '$md5SubPass', $accountStateInt, '$registrationTokenEsc')");
+		Storage::query("acctmd5PubPass:$userEsc:$storageNodeEsc:$appEsc:$md5Pass",
+		                "INSERT INTO `accounts$partition` (`user`, `storageNode`, `app`, `md5Pass`, `state`, `registrationToken`) "
+		                                           ."VALUES ('$userEsc', '$storageNodeEsc', '$appEsc', '$md5Pass', $accountStateInt, '$registrationTokenEsc')");
 		return 'ok';
 	}
 	public static function confirmAccount($accountId, $partition, $registrationToken) {
