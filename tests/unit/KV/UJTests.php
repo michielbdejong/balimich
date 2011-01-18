@@ -71,30 +71,63 @@ class UJTests extends UnitTests {//TODO: this really tests the combination of UJ
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
 			array('protocol'=>'KeyValue-0.2',
 				'command' => array(
+					'user' => 'pich@hotmail.com',
 					'method' => 'CONFIRM',
-					'registrationToken'=>'4025e26727941e4f83398f4aef035b36',
 				),
+				'registrationToken'=>'4025e26727941e4f83398f4aef035b36',
 				'password'=>'pichPass'));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.disappear)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'pich', 'emailDomain'=>'hotmail.com', 'protocol'=>'KeyValue-0.2', 'action'=>'ACCT.DISAPPEAR', 'pubPass'=>'pichPub'));
+			array('protocol'=>'KeyValue-0.2', 
+				'command' => array(
+					'user' => 'pich@hotmail.com',
+					'method' => 'DISAPPEAR',
+				),
+				'password'=>'pichPass'
+				));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.emigrate)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'KeyValue-0.2', 'action'=>'ACCT.EMIGRATE', 'pubPass'=>'michPub', 'migrationToken'=>'here we go', 'toNode'=>'balimich.org'));
+			array('protocol'=>'KeyValue-0.2', 
+				'command' => array(
+					'user' => 'mich@hotmail.com',
+					'method' => 'EMIGRATE',
+					'toNode' => 'balimich.org',
+				),
+				'password'=>'michPass',
+				'migrationToken'=>'here we go',
+				));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.immigrate)";
 		$result = $this->testParams('unhosted.balimich.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'KeyValue-0.2', 'action'=>'ACCT.IMMIGRATE', 'pubPass'=>'michPubNew', 'subPass'=>'michSubNew', 'migrationToken'=>'here we go', 'fromNode'=>'mlsn.org'));
+			array('protocol'=>'KeyValue-0.2', 
+				'command' => array(
+					'user' => 'mich@hotmail.com',
+					'method' => 'IMMIGRATE',
+					'fromNode' => 'mlsn.org',
+				),
+				'password'=>'michPassNew',
+				'migrationToken'=>'here we go',
+				));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.migrate)";
-		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/',
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'KeyValue-0.2', 'action'=>'ACCT.MIGRATE', 'migrationToken'=>'here we go', 'delete'=>'false', 'limit'=>'3', 'needValue'=>'true'));
+		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
+			array('protocol'=>'KeyValue-0.2', 
+				'command' => array(
+					'user' => 'mich@hotmail.com',
+					'method' => 'MIGRATE',
+					'toNode' => 'balimich.org',
+					'delete' => false,
+					'limit' => 3,
+					'needValue' => true,
+				),
+				'migrationToken'=>'here we go',
+				));
 		$this->assertEqual($result, array('KV'=>array(), 'MSG'=>array()));
 	}
 	function runAll() {

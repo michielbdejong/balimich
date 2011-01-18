@@ -33,7 +33,8 @@ class UnhostedJSONParser {
 						'method' => 'IMMIGRATE', 'user' => true, 'fromNode' => true
 					), 'migrationToken' => true, 'password' => true),
 		  'MIGRATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'KeyValue-0.2', 'command'=>array(
-						'method' => 'MIGRATE', 'delete' => true, 'limit' => true, 'needValue' => true, 'keyHash' => false
+						'user' => true, 'method' => 'MIGRATE', 'delete' => true, 'limit' => true,
+						'needValue' => true, 'keyHash' => false, 'toNode' => true,
 					), 'migrationToken' => true),
 		            ),
 		);
@@ -87,41 +88,32 @@ class UnhostedJSONParser {
 			case 'SET' : 
 				list($accountId, $partition) = Security::getAccountIdWithPassword($params['command']['user'], $params['storageNode'], $params['app'], $params['password']);
 				return KeyValue::set($accountId, $partition, $params['command']['keyHash'], $params['command']['value'], $params['pubSign']);
-			case 'MSG.SEND' : 
-				list($accountId, $partition) = Security::getAccountIdWithoutPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass']);
-				return Messages::send($accountId, $partition, $params['keyHash'], $params['value'], $params['pubSign']);
-			case 'MSG.RECEIVE' : 
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
-				return Messages::receive($accountId, $partition, $params['keyHash'], ($params['delete'] == 'true'), $params['limit']);
-			case 'ACCT.REGISTER' : 
-				return Accounts::register($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password'], $params['subPass']);
-			case 'ACCT.CONFIRM' : 
+			case 'REGISTER' : 
+				return Accounts::register($params['command']['user'], $params['storageNode'], $params['app'], $params['password']);
+			case 'CONFIRM' : 
 				//this call is only here to throw exceptions as appropriate:
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
+				list($accountId, $partition) = Security::getAccountIdWithPassword($params['command']['user'], $params['storageNode'], $params['app'], $params['password']);
 				return Accounts::confirm($accountId, $partition, $params['registrationToken']);
-			case 'ACCT.DISAPPEAR' : 
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
+			case 'DISAPPEAR' : 
+				list($accountId, $partition) = Security::getAccountIdWithPassword($params['command']['user'], $params['storageNode'], $params['app'], $params['password']);
 				return Accounts::disappear($accountId, $partition);
-			case 'ACCT.GETSTATE' : 
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
+			case 'GETSTATE' : 
+				list($accountId, $partition) = Security::getAccountIdWithPassword($params['command']['user'], $params['storageNode'], $params['app'], $params['password']);
 				return Security::getState($accountId, $partition);
-			case 'ACCT.EMIGRATE' :
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
-				return Accounts::emigrate($accountId, $partition, $params['toNode'], $params['migrationToken']);
-			case 'ACCT.IMMIGRATE' :
-				return Accounts::immigrate($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password'], $params['subPass'], $params['migrationToken'], $params['fromNode']);
-			case 'ACCT.MIGRATE' :
-				list($accountId, $partition) = Security::getAccountIdWithMigrationToken($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken']);
-				if(!isset($params['group'])) {
-					$params['group']=null;
+			case 'EMIGRATE' :
+				list($accountId, $partition) = Security::getAccountIdWithPassword($params['command']['user'], $params['storageNode'], $params['app'], $params['password']);
+				return Accounts::emigrate($accountId, $partition, $params['command']['toNode'], $params['migrationToken']);
+			case 'IMMIGRATE' :
+				return Accounts::immigrate($params['command']['user'], $params['storageNode'], $params['app'], $params['password'], $params['migrationToken'], $params['command']['fromNode']);
+			case 'MIGRATE' :
+				list($accountId, $partition) = Security::getAccountIdWithMigrationToken($params['command']['user'], $params['storageNode'], $params['app'], $params['command']['migrationToken']);
+				if(!isset($params['command']['keyHash'])) {
+					$params['command']['keyHash']=null;
 				}
-				if(!isset($params['keyHash'])) {
-					$params['keyHash']=null;
-				}
-				return Accounts::migrate($accountId, $partition, $params['migrationToken'], $params['group'], $params['keyHash'], $params['needValue'], $params['delete'], $params['limit']);
+				return Accounts::migrate($accountId, $partition, $params['migrationToken'], $params['command']['keyHash'], $params['command']['needValue'], $params['command']['delete'], $params['command']['limit']);
 			default:
 				//shoudn't get here, because action was checked by checkFields.
-				throw new HttpInternalServerError('action not recognized');
+				throw new HttpInternalServerError('input checking of command.method failed');
 		}
 		}
 	}
