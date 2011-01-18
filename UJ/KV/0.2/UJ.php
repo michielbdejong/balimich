@@ -106,7 +106,7 @@ class UnhostedJSONParser {
 			case 'IMMIGRATE' :
 				return Accounts::immigrate($params['command']['user'], $params['storageNode'], $params['app'], $params['password'], $params['migrationToken'], $params['command']['fromNode']);
 			case 'MIGRATE' :
-				list($accountId, $partition) = Security::getAccountIdWithMigrationToken($params['command']['user'], $params['storageNode'], $params['app'], $params['command']['migrationToken']);
+				list($accountId, $partition) = Security::getAccountIdWithMigrationToken($params['command']['user'], $params['storageNode'], $params['app'], $params['migrationToken']);
 				if(!isset($params['command']['keyHash'])) {
 					$params['command']['keyHash']=null;
 				}

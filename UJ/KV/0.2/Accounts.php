@@ -46,12 +46,7 @@ class Accounts {
 	}
 	public static function migrate($accountId, $partition, $migrationToken, $keyPath, $needValue, $delete, $limit) {
 		Security::checkEmigrant($accountId, $partition, $migrationToken);
-		$entries = KeyValue::export($accountId, $partition, $keyPath, $needValue, $delete, $limit);
-		if($needValue) {
-			return array('KV'=>$entries);
-		} else {
-			return $entries;
-		}
+		return KeyValue::export($accountId, $partition, $keyPath, $needValue, $delete, $limit);
 	}
 	public static function doMigration($user, $storageNode, $app, $keyPath) {
 		list($accountId, $partition) = Security::getAccountId($user, $storageNode, $app);

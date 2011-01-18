@@ -128,7 +128,11 @@ class UJTests extends UnitTests {//TODO: this really tests the combination of UJ
 				),
 				'migrationToken'=>'here we go',
 				));
-		$this->assertEqual($result, array('KV'=>array(), 'MSG'=>array()));
+		$this->assertEqual($result,   array (
+			'abcd/efg' => array (
+				'value' => 'hello there',
+				'PubSign' => 'yours truly',
+			)));
 	}
 	function runAll() {
 		$this->loadFixture('UJ');
