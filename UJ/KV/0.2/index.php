@@ -1,4 +1,5 @@
 <?php
+ini_set('display_errors', 1);
 $_POST = json_decode(file_get_contents('php://input'), true);
 file_put_contents('/tmp/mich.log', "\n\nHOST:".$_SERVER['HTTP_HOST']." REFERER:".$_SERVER['HTTP_REFERER']." POST:".var_export($_POST, true)."\n", FILE_APPEND);
 require_once 'config.php';

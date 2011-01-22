@@ -7,25 +7,25 @@ class KeyValue {
 		$partitionEsc = (int) $partition;
 		$keyPathEsc = Storage::escape($keyPath);
 		$values = Storage::queryArr("entries$accountIdEsc:$keyPathEsc",
-		                               "SELECT `value`, `PubSign` FROM `entries$partitionEsc` WHERE `accountId` = $accountIdEsc AND `keyPath`= '$keyPathEsc'");
+		                               "SELECT `value`, `pubSign` FROM `entries$partitionEsc` WHERE `accountId` = $accountIdEsc AND `keyPath`= '$keyPathEsc'");
 		if(!is_array($values) || count($values) > 1) {
 			throw new HttpInternalServerError();
 		}
 		if(count($values) == 0) {
-			return json_encode(array('value' => null, 'PubSign' => ''));
+			return json_encode(array('cmd' => null, 'pubSign' => null));
 		}
-		return json_encode(array('value' => $values[0][0], 'PubSign' => $values[0][1]));
+		return json_encode(array('cmd' => $values[0][0], 'pubSign' => $values[0][1]));
 	}
-	public static function set($accountId, $partition, $keyPath, $value, $PubSign) {
+	public static function set($accountId, $partition, $keyPath, $value, $pubSign) {
 		$accountIdEsc = (int) $accountId;
 		$partitionEsc = (int) $partition;
 		$keyPathEsc = Storage::escape($keyPath);
 		$valueEsc = Storage::escape($value);
-		$PubSignEsc = Storage::escape($PubSign);
-		$values = Storage::update("entries$accountIdEsc:$keyPathEsc", array($valueEsc, $PubSignEsc),
-		                          "INSERT INTO `entries$partitionEsc` (`accountId`, `keyPath`, `value`, `PubSign`) "
-		                                                  ."VALUES ($accountIdEsc, '$keyPathEsc', '$valueEsc', '$PubSignEsc') ON DUPLICATE KEY UPDATE "
-		                                                  ."`value` = '$valueEsc', `PubSign` = '$PubSignEsc'");
+		$pubSignEsc = Storage::escape($pubSign);
+		$values = Storage::update("entries$accountIdEsc:$keyPathEsc", array($valueEsc, $pubSignEsc),
+		                          "INSERT INTO `entries$partitionEsc` (`accountId`, `keyPath`, `value`, `pubSign`) "
+		                                                  ."VALUES ($accountIdEsc, '$keyPathEsc', '$valueEsc', '$pubSignEsc') ON DUPLICATE KEY UPDATE "
+		                                                  ."`value` = '$valueEsc', `pubSign` = '$pubSignEsc'");
 		if($values !== true) {
 			throw new HttpInternalServerError();
 		}
@@ -40,7 +40,7 @@ class KeyValue {
 		$keyPathEsc = Storage::escape($keyPath);
 		$limitInt = (int)$limit;
 		if($needValue) {
-			$fieldsQ = '`keyPath`, `value`, `PubSign`';
+			$fieldsQ = '`keyPath`, `value`, `pubSign`';
 		} else {
 			$fieldsQ = '`keyPath`';
 		}
@@ -59,7 +59,7 @@ class KeyValue {
 		if($needValue) {
 			$ret = array();
 			foreach($keys as $row) {
-				$ret[$row[0]] = array('value'=>$row[1], 'PubSign'=>$row[2]);
+				$ret[$row[0]] = array('value'=>$row[1], 'pubSign'=>$row[2]);
 			}
 			return $ret;
 		} else {
