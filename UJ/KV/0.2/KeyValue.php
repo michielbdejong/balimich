@@ -22,7 +22,7 @@ class KeyValue {
 		$keyPathEsc = Storage::escape($keyPath);
 		$valueEsc = Storage::escape($value);
 		$pubSignEsc = Storage::escape($pubSign);
-		$values = Storage::update("entries$accountIdEsc:$keyPathEsc", array($valueEsc, $pubSignEsc),
+		$values = Storage::query("entries$accountIdEsc:$keyPathEsc",
 		                          "INSERT INTO `entries$partitionEsc` (`accountId`, `keyPath`, `value`, `pubSign`) "
 		                                                  ."VALUES ($accountIdEsc, '$keyPathEsc', '$valueEsc', '$pubSignEsc') ON DUPLICATE KEY UPDATE "
 		                                                  ."`value` = '$valueEsc', `pubSign` = '$pubSignEsc'");
