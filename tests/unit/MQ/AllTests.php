@@ -20,17 +20,11 @@ require_once 'AccountsTests.php';
 $accountActionsTests = new AccountsTests();
 $accountActionsTests->runAll();
 
-echo "\nKeyValue\n========\n";
-require_once 'KeyValueTests.php';
+echo "\nMessageQueuss\n========\n";
+require_once 'MessageQueuesTests.php';
 
-$keyValueTests = new KeyValueTests();
-$keyValueTests->runAll();
-
-echo "\nMessages\n========\n";
-require_once 'MessagesTests.php';
-
-$messagesTests = new MessagesTests();
-$messagesTests->runAll();
+$messageQueuesTests = new MessageQueuesTests();
+$messageQueuesTests->runAll();
 
 
 echo "\nUJ\n========\n";

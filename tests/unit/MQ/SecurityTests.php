@@ -5,24 +5,16 @@ require_once BASE_DIR . 'Security.php';
 class SecurityTests extends UnitTests {
 	function testGetAccountId() {
 		echo "(michSub OK)";
-		$michSubIdPart = Security::getAccountIdWithSub('mich', 'hotmail.com', 'mlsn.org', 'testApp.org', 'michSub');
+		$michSubIdPart = Security::getAccountIdWithoutPassword('mich@hotmail.com', 'mlsn.org', 'testApp.org');
 		$this->assertEqual($michSubIdPart, array(4, 109));
 		
 		echo "(michPub OK)";
-		$michPubIdPart = Security::getAccountIdWithPub('mich', 'hotmail.com', 'mlsn.org', 'testApp.org', 'michPub');
+		$michPubIdPart = Security::getAccountIdWithPassword('mich@hotmail.com', 'mlsn.org', 'testApp.org', 'michPub');
 		$this->assertEqual($michPubIdPart, array(4, 109));
-
-		echo "(michSub Wrong)";
-		try {	
-			$michSubWrong = Security::getAccountIdWithSub('mich', 'hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
-			$this->assertDontReachHere('mich sub wrong');
-		} catch (HttpForbidden $e) {
-			echo ".";
-		}
 
 		echo "(michPub Wrong)";
 		try {	
-			$michPubWrong = Security::getAccountIdWithPub('mich', 'hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
+			$michPubWrong = Security::getAccountIdWithPassword('mich@hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
 			$this->assertDontReachHere('mich pub wrong');
 		} catch (HttpForbidden $e) {
 			echo ".";
@@ -30,7 +22,7 @@ class SecurityTests extends UnitTests {
 
 		echo "(None Sub Wrong)";
 		try {	
-			$noneSubWrong = Security::getAccountIdWithSub('none', 'hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
+			$noneSubWrong = Security::getAccountIdWithoutPassword('none@hotmail.com', 'mlsn.org', 'testApp.org');
 			$this->assertDontReachHere('none sub wrong');
 		} catch (HttpForbidden $e) {
 			echo ".";
@@ -38,7 +30,7 @@ class SecurityTests extends UnitTests {
 
 		echo "(None Pub Wrong)";
 		try {	
-			$nonePubWrong = Security::getAccountIdWithPub('none', 'hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
+			$nonePubWrong = Security::getAccountIdWithPassword('none@hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
 			$this->assertDontReachHere('none pub wrong');
 		} catch (HttpForbidden $e) {
 			echo ".";
@@ -46,7 +38,7 @@ class SecurityTests extends UnitTests {
 
 		echo "(Goon Sub OK)";
 		try {	
-			$goonSub = Security::getAccountIdWithSub('goon', 'hotmail.com', 'mlsn.org', 'testApp.org', 'goonSub');
+			$goonSub = Security::getAccountIdWithoutPassword('goon@hotmail.com', 'mlsn.org', 'testApp.org');
 			$this->assertDontReachHere('goon sub ok');
 		} catch (HttpGone $e) {
 			echo ".";
@@ -54,23 +46,15 @@ class SecurityTests extends UnitTests {
 
 		echo "(Goon Pub OK)";
 		try {	
-			$goonPub = Security::getAccountIdWithPub('goon', 'hotmail.com', 'mlsn.org', 'testApp.org', 'goonPub');
+			$goonPub = Security::getAccountIdWithPassword('goon@hotmail.com', 'mlsn.org', 'testApp.org', 'goonPub');
 			$this->assertDontReachHere('goon pub ok');
 		} catch (HttpGone $e) {
 			echo ".";
 		}
 
-		echo "(Goon Sub Wrong)";
-		try {	
-			$goonSubWrong = Security::getAccountIdWithSub('goon', 'hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
-			$this->assertDontReachHere('goon sub wrong');
-		} catch (HttpForbidden $e) {
-			echo ".";
-		}
-
 		echo "(Goon Pub Wrong)";
 		try {	
-			$goonPubWrong = Security::getAccountIdWithPub('goon', 'hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
+			$goonPubWrong = Security::getAccountIdWithPassword('goon@hotmail.com', 'mlsn.org', 'testApp.org', 'asdf');
 			$this->assertDontReachHere('goon pub wrong');
 		} catch (HttpForbidden $e) {
 			echo ".";

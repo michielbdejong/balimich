@@ -1,22 +1,41 @@
 <?php
 require_once BASE_DIR . 'Security.php';
 require_once BASE_DIR . 'Accounts.php';
-require_once BASE_DIR . 'Messages.php';
+require_once BASE_DIR . 'MessageQueues.php';
 
 class UnhostedJSONParser {
 	//protocol syntax definition:
 	private $fields = array(
-		'MessageQueues-0.2' => array(
-		      'SEND' => array('keyHash' => true, 'value' => true, 'pubSign' => true, 'subPass' => true),
-		   'RECEIVE' => array('keyHash' => true, 'delete' => true, 'limit' => true, 'password' => true),
-		             //
-		 'REGISTER' => array('password' => true, 'subPass' => true),
-		  'CONFIRM' => array('registrationToken' => true, 'password' => true),
-		'DISAPPEAR' => array('password' => true),
-		 'GETSTATE' => array('password' => true),
-		 'EMIGRATE' => array('password' => true, 'toNode' => true, 'migrationToken' => true),
-		'IMMIGRATE' => array('fromNode' => true, 'migrationToken' => true, 'password' => true, 'subPass' => true),
-		  'MIGRATE' => array('migrationToken' => true, 'delete' => true, 'limit' => true, 'needValue' => true, 'group' => false, 'keyHash' => false),
+		'UJJP/0.2;MessageQueues-0.2' => array(
+		     'SEND' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command' => array(
+						'user' => true, 'method' => 'SEND', 'keyHash' => true, 'value' => true
+					), 'pubSign' => true),
+		  'RECEIVE' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command' => array(
+						'user' => true, 'method' => 'RECEIVE', 'keyHash' => true, 'delete' => true, 'limit' => true
+					), 'password' => true),
+		            //
+		 'REGISTER' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command'=>array(
+						'method' => 'REGISTER', 'user' => true
+					), 'password' => true),
+		  'CONFIRM' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command'=>array(
+						'method' => 'CONFIRM', 'user' => true
+					), 'registrationToken' => true, 'password' => true),
+		'DISAPPEAR' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command'=>array(
+						'method' => 'DISAPPEAR', 'user' => true
+					), 'password' => true),
+		 'GETSTATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command'=>array(
+						'method' => 'GETSTATE', 'user' => true
+					), 'password' => true),
+		 'EMIGRATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command'=>array(
+					'method' => 'EMIGRATE', 'user' => true, 'toNode' => true
+					), 'password' => true, 'migrationToken' => true),
+		'IMMIGRATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command'=>array(
+						'method' => 'IMMIGRATE', 'user' => true, 'fromNode' => true
+					), 'migrationToken' => true, 'password' => true),
+		  'MIGRATE' => array('storageNode' => true, 'app' => true, 'protocol' => 'UJJP/0.2;MessageQueues-0.2', 'command'=>array(
+						'user' => true, 'method' => 'MIGRATE', 'delete' => true, 'limit' => true,
+						'needValue' => true, 'keyHash' => false, 'toNode' => true,
+					), 'migrationToken' => true),
 		            ),
 		);
 	function checkSpec($params, $spec) {
@@ -35,7 +54,7 @@ class UnhostedJSONParser {
 				throw new HttpBadRequest('parameter '.$fieldName.' has value '.$params[$fieldName].' instead of '.$spec[$fieldName]);
 			}
 			if (is_array($spec[$fieldName])) {//recurse:
-				$this->checkSpec($params[$fieldName], $spec[$fieldName]);
+				$this->checkSpec(json_decode($params[$fieldName], true), $spec[$fieldName]);
 			}
 		}
 	}
@@ -49,61 +68,53 @@ class UnhostedJSONParser {
 		if(!isset($params['command'])) {
 			throw new HttpBadRequest('command not set');
 		}
-		if(!isset($params['command']['method'])) {
+		$command = json_decode($params['command'], TRUE);
+		if(!isset($command['method'])) {
 			throw new HttpBadRequest('command.method not set');
 		}
-		if(!isset($this->fields[$params['protocol']][$params['command']['method']])) {
-			throw new HttpBadRequest('protocol/command.method not recognised');
+		if(!isset($this->fields[$params['protocol']][$command['method']])) {
+			throw new HttpBadRequest("protocol/command.method '".var_export($command['method'], TRUE)."'not recognised");
 		}
-		$spec = $this->fields[$params['protocol']][$params['command']['method']];
+		$spec = $this->fields[$params['protocol']][$command['method']];
 		$this->checkSpec($params, $spec);
-		return array($params['protocol'], $params['command']['method']);
+		return array($params['protocol'], $command, $command['method']);
 	}
 	function parse($params) {
-		list($protocol, $method) = $this->checkFields($params);
-		switch($protocol) { case 'KeyValue-0.2':
+		list($protocol, $command, $method) = $this->checkFields($params);
+		switch($protocol) { case 'UJJP/0.2;MessageQueues-0.2':
  		switch($method) {
-			case 'GET' : 
-				list($accountId, $partition) = Security::getAccountIdWithoutPassword($params['command']['user'], $params['storageNode'], $params['app']);
-				return KeyValue::get($accountId, $partition, $params['command']['keyHash']);
-			case 'SET' : 
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['command']['user'], $params['storageNode'], $params['app'], $params['password']);
-				return KeyValue::set($accountId, $partition, $params['command']['keyHash'], $params['command']['value'], $params['pubSign']);
-			case 'MSG.SEND' : 
-				list($accountId, $partition) = Security::getAccountIdWithoutPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['subPass']);
-				return Messages::send($accountId, $partition, $params['keyHash'], $params['value'], $params['pubSign']);
-			case 'MSG.RECEIVE' : 
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
-				return Messages::receive($accountId, $partition, $params['keyHash'], ($params['delete'] == 'true'), $params['limit']);
-			case 'ACCT.REGISTER' : 
-				return Accounts::register($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password'], $params['subPass']);
-			case 'ACCT.CONFIRM' : 
+			case 'SEND' : 
+				list($accountId, $partition) = Security::getAccountIdWithoutPassword($command['user'], $params['storageNode'], $params['app']);
+				return MessageQueues::send($accountId, $partition, $command['keyHash'], $params['command'], $params['pubSign']);
+			case 'RECEIVE' : 
+				list($accountId, $partition) = Security::getAccountIdWithPassword($command['user'], $params['storageNode'], $params['app'], $params['password']);
+				return MessageQueues::receive($accountId, $partition, $command['keyHash'], ($command['delete'] == 'true'), $command['limit']);
+			case 'REGISTER' : 
+				return Accounts::register($command['user'], $params['storageNode'], $params['app'], $params['password']);
+			case 'CONFIRM' : 
 				//this call is only here to throw exceptions as appropriate:
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
+				list($accountId, $partition) = Security::getAccountIdWithPassword($command['user'], $params['storageNode'], $params['app'], $params['password']);
 				return Accounts::confirm($accountId, $partition, $params['registrationToken']);
-			case 'ACCT.DISAPPEAR' : 
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
+			case 'DISAPPEAR' : 
+				list($accountId, $partition) = Security::getAccountIdWithPassword($command['user'], $params['storageNode'], $params['app'], $params['password']);
 				return Accounts::disappear($accountId, $partition);
-			case 'ACCT.GETSTATE' : 
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
+			case 'GETSTATE' : 
+				list($accountId, $partition) = Security::getAccountIdWithPassword($command['user'], $params['storageNode'], $params['app'], $params['password']);
 				return Security::getState($accountId, $partition);
-			case 'ACCT.EMIGRATE' :
-				list($accountId, $partition) = Security::getAccountIdWithPassword($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password']);
-				return Accounts::emigrate($accountId, $partition, $params['toNode'], $params['migrationToken']);
-			case 'ACCT.IMMIGRATE' :
-				return Accounts::immigrate($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['password'], $params['subPass'], $params['migrationToken'], $params['fromNode']);
-			case 'ACCT.MIGRATE' :
-				list($accountId, $partition) = Security::getAccountIdWithMigrationToken($params['emailUser'], $params['emailDomain'], $params['storageNode'], $params['app'], $params['migrationToken']);
-				if(!isset($params['group'])) {
-					$params['group']=null;
+			case 'EMIGRATE' :
+				list($accountId, $partition) = Security::getAccountIdWithPassword($command['user'], $params['storageNode'], $params['app'], $params['password']);
+				return Accounts::emigrate($accountId, $partition, $command['toNode'], $params['migrationToken']);
+			case 'IMMIGRATE' :
+				return Accounts::immigrate($command['user'], $params['storageNode'], $params['app'], $params['password'], $params['migrationToken'], $command['fromNode']);
+			case 'MIGRATE' :
+				list($accountId, $partition) = Security::getAccountIdWithMigrationToken($command['user'], $params['storageNode'], $params['app'], $params['migrationToken']);
+				if(!isset($command['keyHash'])) {
+					$command['keyHash']=null;
 				}
-				if(!isset($params['keyHash'])) {
-					$params['keyHash']=null;
-				}
-				return Accounts::migrate($accountId, $partition, $params['migrationToken'], $params['group'], $params['keyHash'], $params['needValue'], $params['delete'], $params['limit']);
+				return Accounts::migrate($accountId, $partition, $params['migrationToken'], $command['keyHash'], $command['needValue'], $command['delete'], $command['limit']);
 			default:
 				//shoudn't get here, because action was checked by checkFields.
-				throw new HttpInternalServerError('action not recognized');
+				throw new HttpInternalServerError('input checking of command.method failed');
 		}
 		}
 	}

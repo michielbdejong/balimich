@@ -21,72 +21,126 @@ class UJTests extends UnitTests {//TODO: this really tests the combination of UJ
 	private function testProtocolViolations() {
 	}
 	private function testEachCommandOnce() {
-		echo "(kv.get unset key)";
+		echo "(msg.rcv empty queue)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/what/ever/file.html',
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'KV.GET', 'keyPath'=>'abcd/efg', 'subPass'=>'michSub'));
-		$this->assertEqual($result, json_encode(array('value'=>null, 'PubSign'=>'')));
-
-		echo "(kv.set)";
-		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'KV.SET', 
-				'keyPath'=>'abcd/efg', 'value'=>'hello there',
-				'PubSign'=>'yours truly', 'pubPass'=>'michPub'));
-		$this->assertEqual($result, '');
-
-		echo "(kv.get)";
-		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'KV.GET', 'keyPath'=>'abcd/efg', 'subPass'=>'michSub'));
-		$this->assertEqual($result, '{"value":"hello there","PubSign":"yours truly"}');
-
-		echo "(msg.receive empty)";
-		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'MSG.RECEIVE', 'keyPath'=>'abcd/efg', 'pubPass'=>'michPub', 'delete'=>'true', 'limit'=>'10'));
-		$this->assertEqual($result, '[]');
+			array('protocol' => 'UJJP/0.2;MessageQueues-0.2',
+				'command'=>json_encode(array(
+					'user'=>'mich@hotmail.com',
+					'method'=>'RECEIVE',
+					'keyHash'=>'abcd/efg',
+					'delete'=>true,
+					'limit'=>100,
+				)),
+				'password' => 'michPass',
+			));
+		$this->assertEqual($result, json_encode(array()));
 
 		echo "(msg.send)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'MSG.SEND', 'keyPath'=>'abcd/efg', 'subPass'=>'michSub', 'value'=>'hiya', 'PubSign'=>'me'));
-		$this->assertEqual($result, '');
+			array('protocol' => 'UJJP/0.2;MessageQueues-0.2',
+				'command' => json_encode(array(
+					'user'=>'mich@hotmail.com',
+					'method'=>'SEND', 
+					'keyHash'=>'abcd/efg',
+					'value'=>'hello there',
+				)),
+				'pubSign' => 'yours truly'));
+		$this->assertEqual($result, 'ok');
 
-		echo "(msg.receive)";
+		echo "(msg.rcv)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'MSG.RECEIVE', 'keyPath'=>'abcd/efg', 'pubPass'=>'michPub', 'delete'=>'true', 'limit'=>'10'));
-		$this->assertEqual($result, '[{"value":"hiya","PubSign":"me"}]');
+			array('protocol' => 'UJJP/0.2;MessageQueues-0.2',
+				'command' => json_encode(array(
+					'user' => 'mich@hotmail.com',
+					'method' => 'RECEIVE',
+					'keyHash'=>'abcd/efg',
+					'delete'=>true,
+					'limit'=>100,
+				)),
+				'password' => 'michPass',
+			));
+		$this->assertEqual($result, '[{"cmd":"{\\"user\\":\\"mich@hotmail.com\\",\\"method\\":\\"SEND\\",\\"keyHash\\":\\"abcd\\\\\\/efg\\",\\"value\\":\\"hello there\\"}","pubSign":"yours truly"}]');
 
 		echo "(acct.register)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'pich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.REGISTER', 'pubPass'=>'pichPub', 'subPass'=>'pichSub'));
+			array('protocol'=>'UJJP/0.2;MessageQueues-0.2', 
+				'command' => json_encode(array(
+					'user' => 'pich@hotmail.com',
+					'method' => 'REGISTER',
+				)),
+				'password'=>'pichPass'
+				));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.confirm)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'pich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.CONFIRM', 'registrationToken'=>'4025e26727941e4f83398f4aef035b36', 'pubPass'=>'pichPub'));
+			array('protocol'=>'UJJP/0.2;MessageQueues-0.2',
+				'command' => json_encode(array(
+					'user' => 'pich@hotmail.com',
+					'method' => 'CONFIRM',
+				)),
+				'registrationToken'=>'4025e26727941e4f83398f4aef035b36',
+				'password'=>'pichPass'));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.disappear)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'pich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.DISAPPEAR', 'pubPass'=>'pichPub'));
+			array('protocol'=>'UJJP/0.2;MessageQueues-0.2', 
+				'command' => json_encode(array(
+					'user' => 'pich@hotmail.com',
+					'method' => 'DISAPPEAR',
+				)),
+				'password'=>'pichPass'
+				));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.emigrate)";
 		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.EMIGRATE', 'pubPass'=>'michPub', 'migrationToken'=>'here we go', 'toNode'=>'balimich.org'));
+			array('protocol'=>'UJJP/0.2;MessageQueues-0.2', 
+				'command' => json_encode(array(
+					'user' => 'mich@hotmail.com',
+					'method' => 'EMIGRATE',
+					'toNode' => 'balimich.org',
+				)),
+				'password'=>'michPass',
+				'migrationToken'=>'here we go',
+				));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.immigrate)";
 		$result = $this->testParams('unhosted.balimich.org', 'http://testApp.org/', 
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.IMMIGRATE', 'pubPass'=>'michPubNew', 'subPass'=>'michSubNew', 'migrationToken'=>'here we go', 'fromNode'=>'mlsn.org'));
+			array('protocol'=>'UJJP/0.2;MessageQueues-0.2', 
+				'command' => json_encode(array(
+					'user' => 'mich@hotmail.com',
+					'method' => 'IMMIGRATE',
+					'fromNode' => 'mlsn.org',
+				)),
+				'password'=>'michPassNew',
+				'migrationToken'=>'here we go',
+				));
 		$this->assertEqual($result, 'ok');
 
 		echo "(acct.migrate)";
-		$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/',
-			array('emailUser'=>'mich', 'emailDomain'=>'hotmail.com', 'protocol'=>'UJ/0.2', 'action'=>'ACCT.MIGRATE', 'migrationToken'=>'here we go', 'delete'=>'false', 'limit'=>'3', 'needValue'=>'true'));
-		$this->assertEqual($result, array('KV'=>array(), 'MSG'=>array()));
+		try {
+			$result = $this->testParams('unhosted.mlsn.org', 'http://testApp.org/', 
+				array('protocol'=>'UJJP/0.2;MessageQueues-0.2', 
+					'command' => json_encode(array(
+						'user' => 'mich@hotmail.com',
+						'method' => 'MIGRATE',
+						'toNode' => 'balimich.org',
+						'delete' => false,
+						'limit' => 3,
+						'needValue' => true,
+					)),
+					'migrationToken'=>'here we go',
+					));
+			$this->assertDontReach('expected a 404 here');
+		} catch (HttpNotFound $e) {
+			echo ".";
+		}
 	}
 	function runAll() {
 		$this->loadFixture('UJ');
-		
-
 		echo "testProtocolViolations:\n";$this->testProtocolViolations();echo "\n";
 		echo "testEachCommand:\n";$this->testEachCommandOnce();echo "\n";
 	}

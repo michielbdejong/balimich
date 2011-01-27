@@ -99,10 +99,10 @@ abstract class UnitTests {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}
 			break;
-		case 'Messages':
+		case 'MessageQueues':
 			if(!(   $this->createMessagesTable(123)
 			     && $this->createMessagesTable(24)
-			     && $this->createMessage(8, 123, 'abcd/efg', 'msg hello there', 'msg yours truly')
+			     && $this->createMessage(8, 123, 'abcd/efg', 'cmd SEND - bla - etc', 'msg yours truly')
 			     )) {
 				throw new Exception('Fixture problem: '.$this->mysql->error);
 			}
