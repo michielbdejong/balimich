@@ -147,11 +147,11 @@ class AccountsTests extends UnitTests {
 
 		echo "(test migrate foo key)";
 		$response = Accounts::migrate(15, 103, 'transgress', 'foo', true, false, 3);
-		$this->assertEqual($response, array('foo'=>array('value'=>'bar', 'PubSign'=>'yours truly')));
+		$this->assertEqual($response, array('foo'=>array('cmd'=>'bar', 'pubSign'=>'yours truly')));
 
 		echo "(test migrate any key)";
 		$response = Accounts::migrate(15, 103, 'transgress', '', true, false, 3);
-		$this->assertEqual($response, array('foo'=>array('value'=>'bar', 'PubSign'=>'yours truly')));
+		$this->assertEqual($response, array('foo'=>array('cmd'=>'bar', 'pubSign'=>'yours truly')));
 
 		echo "(test migrate foo key del)";
 		$response = Accounts::migrate(15, 103, 'transgress', 'foo', false, true, 3);

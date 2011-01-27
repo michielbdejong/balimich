@@ -6,6 +6,8 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_NAME', 'mlsnTest');
 define('EMAIL_SENDER_CLASS', 'EmailSenderTest');
+define('MC_HOST', 'localhost');
+define('MC_PORT', 11211);
 
 class EmailSenderTest {
 	function sendRegistrationToken($toEmail, $token) {

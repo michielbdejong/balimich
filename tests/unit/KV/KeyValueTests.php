@@ -6,15 +6,15 @@ class KeyValueTests extends UnitTests {
 	function testGet() {
 		echo "(get existing key)";
 		$value = KeyValue::get(8, 123, 'abcd/efg');
-		$this->assertEqual($value, '{"value":"hello there","PubSign":"yours truly"}');
+		$this->assertEqual($value, '{"cmd":"hello there","pubSign":"yours truly"}');
 		
 		echo "(get missing key)";
 		$value = KeyValue::get(8, 123, 'abcd/efgh');
-		$this->assertEqual($value, json_encode(array('value'=>null, 'PubSign'=>'')));
+		$this->assertEqual($value, json_encode(array('cmd'=>null, 'pubSign'=>null)));
 
 		echo "(get key for non-account)";//you couldn't do this over UJ because getAccountId would fail.
 		$value = KeyValue::get(12, 24, 'abcd/efg');
-		$this->assertEqual($value, json_encode(array('value'=>null, 'PubSign'=>'')));
+		$this->assertEqual($value, json_encode(array('cmd'=>null, 'pubSign'=>null)));
 	}
 	function testSet() {
 		echo "(setting)";
@@ -22,18 +22,18 @@ class KeyValueTests extends UnitTests {
 
 		echo ".(get existing key)";
 		$value = KeyValue::get(8, 123, 'abcd/efg');
-		$this->assertEqual($value, '{"value":"hello there","PubSign":"yours truly"}');
+		$this->assertEqual($value, '{"cmd":"hello there","pubSign":"yours truly"}');
 		
 		echo "(get newly set key)";
 		$value = KeyValue::get(8, 123, 'abcd/');
-		$this->assertEqual($value, '{"value":"something new","PubSign":"same person"}');
+		$this->assertEqual($value, '{"cmd":"something new","pubSign":"same person"}');
 		
 		echo "(setting again)";
 		KeyValue::set(8, 123, 'abcd/', 'something else', 'still me');
 
 		echo ".(getting changed key)";
 		$value = KeyValue::get(8, 123, 'abcd/');
-		$this->assertEqual($value, '{"value":"something else","PubSign":"still me"}');
+		$this->assertEqual($value, '{"cmd":"something else","pubSign":"still me"}');
 	}
 	function runAll() {
 		$this->loadFixture('KeyValue');

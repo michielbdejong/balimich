@@ -59,7 +59,7 @@ class KeyValue {
 		if($needValue) {
 			$ret = array();
 			foreach($keys as $row) {
-				$ret[$row[0]] = array('value'=>$row[1], 'pubSign'=>$row[2]);
+				$ret[$row[0]] = array('cmd'=>$row[1], 'pubSign'=>$row[2]);
 			}
 			return $ret;
 		} else {

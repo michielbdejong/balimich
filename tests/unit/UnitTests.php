@@ -55,6 +55,7 @@ abstract class UnitTests {
 		echo 'loading fixture: '.$fixtureName."\n";
 		$this->mysql = mysqli_connect(DB_HOST, DB_USER, DB_PASS);
 		$this->mysql->query('DROP DATABASE `'.DB_NAME.'`');
+		memcache_connect(MC_HOST, MC_PORT)->flush();
 		$this->mysql->query('CREATE DATABASE `'.DB_NAME.'`');
 		$this->mysql = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 		switch($fixtureName) {
