@@ -1,5 +1,41 @@
-BALIMICH
+DEPRECATED 
 ========
+
+This repository was the predecessor of http://github.com/michiel-unhosted/myfavouritesandwich (client-side) and http://github.com/michiel-unhosted/DemoRedlibreOrg (server-side).
+-----------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Balimich is a UJ/0.2-compatible Unhosted Storage Node. For more information about both unhosted software and the Unhosted JSON protocol that was introduced to make it possible, see http://www.unhosted.org/. Balimich is written in php, memcache and mysql. Other unhosted storage nodes exist (or are being developed) in node.js and in python - the choice is yours.
 
