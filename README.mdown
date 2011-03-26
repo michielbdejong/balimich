@@ -1,0 +1,187 @@
+DEPRECATED 
+========
+
+This repository was the predecessor of [http://github.com/michiel-unhosted/myfavouritesandwich](http://github.com/michiel-unhosted/myfavouritesandwich) (client-side) and [http://github.com/michiel-unhosted/DemoRedlibreOrg](http://github.com/michiel-unhosted/DemoRedlibreOrg) (server-side).
+-----------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Balimich is a UJ/0.2-compatible Unhosted Storage Node. For more information about both unhosted software and the Unhosted JSON protocol that was introduced to make it possible, see http://www.unhosted.org/. Balimich is written in php, memcache and mysql. Other unhosted storage nodes exist (or are being developed) in node.js and in python - the choice is yours.
+
+
+Structure of the code
+=====================
+
+Here is a rough diagram:
+
+                        index.php
+                         |  |  |
+ -------------------------  |  ----------
+ |                          |           |
+ |                        UJ.php     config.php
+ |                          |
+ |        --------------------------------------------------
+ |        |          |                 |                   |
+ |   Accounts.php    |                 |                   |
+ |    |  |  |  |     |                 |                   |
+ |    |  |  |  Security.php        KeyValue.php        Messages.php
+ |    |  |  |       |                  |                   |
+ |    |  |  |       ----------------------------------------
+ |    |  |  |       |
+ |    |  |  |       |
+Http.php |  Storage.php
+         |
+       Smtp.php
+
+index.php and config.php are obvious.
+UJ.php handles the parsing of UJ/0.2 action parameters.
+Security.php handles authentication and access control, independent of which command group the action belongs to.
+Accounts.php handles actions from the ACCT command group.
+Similarly, KeyValue.php handles KV actions, and Messages.php handles MSG actions.
+Storage handles mysql storage, which is partitioned into 26 shards, by the ascii code of the first character of the user name. I'll add a memcache layer to it at some point.
+Http.php handles parsing of both incoming and outgoing (in case of node-to-node migration) Http, and Smtp.php handles the sending of registration tokens by email.
+
+
+Where to put this code on your webserver
+========================================
+
+The code is meant to run on https://unhosted.<domain>/UJ/0.2/
+The reason for this is as follows:
+- "https://[...]" - we think https is doable nowadays, and important. 
+- "[...]unhosted.[...]" - many institutions will want to run the unhosted storage node entirely isolated from their corporate website. That's why we made it a subdomain.
+- "[...]<domain>/[...]" - people log in to apps with their email (whether it's their real email address, or one they use specifically for unhosted web apps). The web app then needs to have a way to route that guid to an IP address. The easiest way to do this is take the part behind the '@'-symbol and resolve it with standard DNS (or any generic future improvements to DNS like DNSSEC, Tor, or .p2p domain names). So routing a guid to a physical host is NOT (I repeat: NOT), a part of unhosted as such. It offloads that task to whatever you plug into your browser for DNS lookups.
+- "[...]UJ/[...]" - at this url you could put an interpreter that speaks all versions of Unhosted JSON (as long as you keep it updated when new versions come out).
+= "[...]0.2/" - there are some things in this protocol, like the captcha generation for instance, that may disappear in future versions. So to not burden future versions with having to implement parts of UJ/0.2 that are not a strict subset of all subsequent versions, we put it on a per-version URL, so when you upgrade, you can leave the code that processes UJ/0.2/ separate and that way easily stay backward compatible without needing to carry along legacy code inside the code base.
+
+To install, create a database called for instance 'balimich', and something like "php install/genTables.php | mysql -h localhost -u root -p balimich", then edit config.php.
+
+
+Overview of UJ/0.2 actions
+==========================
+
+| group:            |    KV     |       MSG      |                                    ACCT                                    |
+| command:          | GET | SET | SEND | RECEIVE | REGISTER | CONFIRM | DISAPPEAR | GETSTATE | EMIGRATE | IMMIGRATE | MIGRATE |
+===============================================================================================================================
+| HTTP HOST         | always the unhosted storage node where the account currently "lives"                                    |
+| HTTP REFERER      | always the app on the account                                                                           |
+=GENERIC POST PARAMETERS:======================================================================================================
+| protocol          | always 'UJ/0.2'                                                                                         |
+| emailUser         | always the part before the @ symbol of the email on the account                                         |
+| emailDomain       | always the part after the @ symbol of the email on the account                                          |
+| action            | given the group and the command above, always group.command, so 'KV.GET', 'MSG.SEND', etc.              |
+=action-SPECIFIC POST PARAMETERS:==============================================================================================
+| keyPath           |  *  |  *  |  *   |    *    |          |         |           |          |          |           |   (*)   |
+| value             |     |  *  |  *   |         |          |         |           |          |          |           |         |
+| pubPass           |     |  *  |      |    *    |     *    |    *    |     *     |    *     |    *     |     *     |         |
+| subPass           |  *  |     |  *   |         |     *    |         |           |          |          |     *     |         |
+| PubSign           |     |  *  |  *   |         |          |         |           |          |          |           |         |
+| delete            |     |     |      |    *    |          |         |           |          |          |           |    *    |
+| limit             |     |     |      |   (*)   |          |         |           |          |          |           |   (*)   |
+| registrationToken |     |     |      |         |          |    *    |           |          |          |           |         |
+| migrationToken    |     |     |      |         |          |         |           |          |     *    |     *     |    *    |
+| toNode            |     |     |      |         |          |         |           |          |     *    |           |         |
+| fromNode          |     |     |      |         |          |         |           |          |          |     *     |         |
+| group             |     |     |      |         |          |         |           |          |          |           |   (*)   |
+| needValue         |     |     |      |         |          |         |           |          |          |           |    *    |
+=ALLOWED HTTP RESPONSES:=======================================================================================================
+| 200 OK            |  *  |  *  |  *   |   *     |     *    |    *    |     *     |    *     |     *    |     *     |    *    |
+| 302(?) Perm. Moved|  *  |  *  |  *   |   *     |     *    |    *    |     *     |          |     *    |           |         |
+| 400 Bad Request   |  *  |  *  |  *   |   *     |     *    |    *    |     *     |    *     |     *    |     *     |    *    |
+| 403 Forbidden     |  *  |  *  |  *   |   *     |     *    |    *    |     *     |    *     |     *    |     *     |    *    |
+| 500 Int. S. Error |  *  |  *  |  *   |   *     |     *    |    *    |     *     |    *     |     *    |     *     |    *    |
+| 503 Service Unav. |  *  |  *  |  *   |   *     |     *    |    *    |     *     |    *     |     *    |     *     |    *    |
+| 410 Gone          |  *  |  *  |  *   |   *     |          |    *    |     *     |          |     *    |     *     |    *    |
+===============================================================================================================================
+
+
+Description of the behaviour of an unhosted storage node
+========================================================
+
+An unhosted storage node should respond to all the actions listed in the table above. It should maintain state for the accounts on there. First of all, I'll describe the account life cycle:
+
+Account life cycle
+------------------
+- An account is uniquely defined by (HTTP HOST, emailUser, emailDomain, HTTP REFERER). This may be slightly counter-intuitive because you might have expected accounts to be unique per email address. This is not the case because an unhosted storage node can store information for many applications (the application always puts its name in the HTTP REFERER field of the HTTP calls it makes). You could even have a personal unhosted storage node, where HTTP HOST, emailUser and emailDomain are always the same, and you have one account per HTTP REFERER.
+
+- The first step in the life cycle is always 'ACCT.REGISTER'. This brings the account into existence, and puts it in the PENDING state. from there, it will either go to the LIVE state if a correct 'ACCT.CONFIRM', or back to non-existence with 'ACCT.DISAPPEAR'. No other actions should be accepted if the account is in the PENDING state.
+
+- Once the account is in the LIVE state, it can go to the GONE state with ACCT.DISAPPEAR. From there, there is no way within the protocol for the account to go anywhere else (although the unhosted storage node should implement its own policies of what to do if the user wants to undo the ACCT.DISAPPEAR action). So in a drawing:
+
+- A live account can move from one node to another by sending MIGR.EMIGRATE to the old node, and MIGR.IMMIGRATE+ACCT.CONFIRM to the new one. This will bring it into EMIGRANT state on the old, where it will only accept the MIGR.MIGRATE action, and IMMIGRANT state on the new one. The new node will issue MIGR.MIGRATE actions to the old node (this is the only action that goes node-to-node instead of client-to-node. This is repeated until the response from the emigrant node indicates that it's finished. Then, the old node leaves the account in EMIGRANT state, but the new node will switch it to LIVE state.
+
+                     ACCT.REGISTER                        ACCT.CONFIRM                    ACCT.DISAPPEAR
+[NON-EXISTENCE]----------------------------->[PENDING]--------------------->[LIVE]--------------------------->[GONE]     
+ |  ^   ^                                       |                         /  ^  |  \
+ |  |   |                                       |                        |    \/    \
+ V  |   |         ACCT.DISAPPEAR                |                        |   KV.*    \     MIGR.EMIGRATE
+ |  |   \--<----------<-------------<-----------/                        ^   MSG.*    \----------------------->[EMIGRANT]
+ |  |                                                                    |                                       |  |
+ |  |   ACCT.DISAPPEAR                               KV.*                |                                        \/
+ |   \---<--------------<----\                       MSG.*      (when    |                                   MIGR.MIGRATE
+ V                           |                        /\       migration |
+ |   MIGR.IMMIGRATE          |        ACCT.CONFIRM   |  v      finished) |
+  \----------------->[PENDINGIMMIGRANT]----------->[IMMIGRANT]-----------/ 
+
+Exact way the ACCT actions work:
+---------------------------------
+- An account has two passwords : one which is owned by the user herself, the pubPass (for 'publisher password'), and the subPass (for 'subscriber password') which is used by others for read-only access.
+- The ACCT.REGISTER sets these passwords (as well as the email address) once-and-forever, there is currently no action for changing them. That should not be such a big deal, because they are not meant to ever be visible to the end user. Obviously, the ACCT.REGISTER action sets these passwords, but they are not usable yet while the account is in PENDING state. We imagine that an unhosted storage node will send out an email to emailUser@emailDomain, containing a registration token. That token can then be used by the user to confirm his email address.
+- The ACCT.CONFIRM action confirms the registration token that was sent out by SMTP, or made know to the end user in some other way. Apart from registrationToken, it takes pubPass as one of its parameters, to make sure the person confirming the account is the one who issued the ACCT.REGISTER earlier, and is now the only one who knows the pubPass (I'm not sure it is necessary to check pubPass here, but it can't hurt). Obviously, if pubPass is wrong, you don't execute the action, and reply with a HTTP 403 Forbidden.
+- The ACCT.DISAPPEAR action will make the account switch either from PENDING to NON-EXISTING, or from LIVE to GONE. It requires the pubPass (obviously) as a parameter. In the GONE state, no actions are accepted, and they will all be replied to with HTTP 410 GONE.
+- The ACCT.GETSTATE action, which takes as parameters an account and its pubPass, returns the state of the account as per the above diagram. I used it in the loginapp to provide the user with feedback about whether login was successful or not. It returns the state as a text, one of 'PENDING', 'LIVE', 'IMMIGRANTPENDING', 'IMMIGRANT', 'EMIGRANT', 'GONE'. If the account doesn't exist, or the pubPass you gave is wrong, it will return an HTTP 403 Forbidden.
+
+Exact way the MIGR actions work:
+---------------------------------
+- To migrate the contents of an account from one place to another, you have to send a 'MIGR.EMIGRATE' action to the existing node, and a 'MIGR.IMMIGRATE' action to the new one. The account on the old node will then go to EMIGRANT state, and reply to all further actions (except MIGR.MIGRATE) with a HTTP redirect, indicating the new node.
+- The MIGR.EMIGRATE action takes as its parameters the account, the pubPass, the domainname of the node to go to (toNode) and a migrationToken.
+- The MIGR.IMMIGRATE action is quite similar to ACCT.REGISTER. It takes as its parameters the account, the new pubPass and subPass to set (different from the ones used when still on the old node, obviously), and the migrationToken that should match the one given to the old node in the MIGR.EMIGRATE action. It should also specify the domainname of the node to migrate from (fromNode).
+- Now, it is the responsibility of the new node to provide a seamless migration experience. Whenever a KV.GET request is made for a key that was not migrated yet, it should issue a migrate action for that specific key before replying. If it is not able to give a reliable answer, it should respond with an internal server error. Similar for KV.SET, MSG.SEND and MSG.RECEIVE. Apart from migrating keys and message queues as-needed, it can choose to pro-actively issue migrate actions, so as to finish the overhead if the immigrant state sooner.
+- The MIGR.MIGRATE action has quite a few parameters, to make it versatile. You always have to specify the account and the migration token. You can optionally specify a group + keyPath; group should be 'KV' or 'MSG', and the keyPath, if set, indicates which keyPath you are interested in. You can specify a limit to the number of keys or messages you want to fetch with 'limit', but this is optional (leaving it out means unlimited, and the host should either refuse with a HTTP Service Unavailable if there are too many items, or execute the action without limit). You can specify that the key or message queue can be deleted by setting 'delete' to 'true'. And if you do that, you can specify 'needValue' as something other than 'true', to indicate that this call only intends to delete keys or message queues that were successfully received earlier, and you don't need the values to be included in the response.
+- If there are no more keys or messages matching the parameters of a MIGR.MIGRATE action, the old node will respond with a 404. If a MIGR.MIGRATE with no keyPath set and no group set returns a 404, the new node should switch the account to LIVE state.
+
+The KeyValue store
+------------------
+-For each account, the unhosted storage node should maintain a persistent key-value store. It should map keyPaths onto values. If a key was never set before, its value defaults to the JSON string for null. Otherwise a KV.GET action will return whatever was the latest value set into that keyPath wiht a KV.SET action for that account.
+-The KV.SET action takes an account, the pubPass, a keyPath, and a value as its parameters. Both keyPath and value are strings. Even though keyPath suggests that this is like a file path, and you are allowed to use forward slashes in them, it is currently simply treated as a string. We imagine the value string to be JSON, but this is not a requirement of the protocol. It also requires a PubSign field, although you can set this to the empty string.
+-The KV.GET action takes an account, the subPass, and a keyPath as its parameters. It returns the value of the latest KV.SET action for that account and keyPath, or the JSON string for null if the keyPath has never been set yet.
+
+The Messages system
+-------------------
+- For each account, the unhosted storage node should also maintain a messages system. This consists of an unlimited number of message queues, each identified with a keyPath. All messages that are sent to a given queue with the MSG.SEND action, are stored persistently in chronological order. The MSG.RECEIVE action should retrieve an array of messages, being always the oldest messages in the queue, in chronological order.
+- The MSG.SEND action takes as its parameters the account, the subPass (so not the pubPass!), the keyPath, and a value (which is the message body, so to speak). It also requires a PubSign fields, although you can set this to the empty string.
+- The MSG.RECEIVE action takes as its parameters the account, the pubPass (to prove you're the addressee), the keyPath, and two more parameters, 'delete' and 'limit'. If 'delete' is 'true' then the unhosted storage node should delete each message it sends. Otherwise it should leave all the messages in the queue. Also, it should never return more items than the decimal number specified in 'limit', if that optional field is set. Leaving it out means unlimited, and the host should either then refuse with a HTTP Service Unavailable if there are too many items, or execute the action without limit.
+
+General syntax of HTTP messages
+-------------------------------
+- there is still some discussion on the list about To REST Or Not To REST. In my implementation, I implemented everything as HTTP POST. If the POST parameters do not correspond to a valid action, a 400 Bad Request will be returned. This includes if you add unrecognised fields (we don't want people to introduce dialects without assigning a new version number to them). In my implementation, there will also be throttling, to make sure resources can be assigned fairly. This will be done with a 503 Service Unavailable response.
