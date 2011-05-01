@@ -1,5 +1,3 @@
-DEPRECATED 
+deprecated, see https://github.com/michiel-unhosted/unhosted/ instead
 ========
 
-This repository was the predecessor of [http://github.com/michiel-unhosted/myfavouritesandwich](http://github.com/michiel-unhosted/myfavouritesandwich) (client-side) and [http://github.com/michiel-unhosted/DemoRedlibreOrg](http://github.com/michiel-unhosted/DemoRedlibreOrg) (server-side).
------------------
